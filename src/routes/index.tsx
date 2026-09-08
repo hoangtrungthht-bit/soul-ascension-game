@@ -8,12 +8,13 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Game tu tiên 2D top-down: di chuyển bằng joystick, thu thập Nguyên Thạch và Bí Kíp, trả lời trắc nghiệm để tăng Tu Vi và thăng cấp Bí Cảnh.",
+          "Game tu tiên 2D top-down: di chuyển bằng joystick, thu thập Nguyên Thạch và Bí Kíp, trả lời trắc nghiệm để tăng Tu Vi, đột phá qua 10 cảnh giới từ Phàm Nhân đến Phi Thăng Thành Tiên.",
       },
       { property: "og:title", content: "Tu Tiên Ký - Game RPG Tu Luyện 2D" },
       {
         property: "og:description",
-        content: "Thu thập Nguyên Thạch, giải trắc nghiệm, tăng Tu Vi và bước vào Bí Cảnh.",
+        content:
+          "Thu thập Nguyên Thạch, giải trắc nghiệm, tăng Tu Vi và đột phá qua 10 cảnh giới tu tiên.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -21,8 +22,6 @@ export const Route = createFileRoute("/")({
   }),
   component: Game,
 });
-
-type Realm = 0 | 1;
 
 type Item = {
   id: number;
@@ -51,28 +50,33 @@ const QUESTIONS: Q[] = [
 
 const W = 1600;
 const H = 1200;
+const TUVI_MAX = 5;
+const MAX_LEVEL = 9;
 
-const REALMS = [
-  {
-    name: "Tân Thủ Thôn",
-    ground: "#3f6b45",
-    ground2: "#356038",
-    path: "#b49a6a",
-    rock: "#7d8794",
-    tree: "#245c34",
-    treeTop: "#3c8c4d",
-    sky: "#bfe3c4",
-  },
-  {
-    name: "Bí Cảnh",
-    ground: "#2a2350",
-    ground2: "#211c44",
-    path: "#6b5aa8",
-    rock: "#4b4470",
-    tree: "#3a2a6b",
-    treeTop: "#7b5ad1",
-    sky: "#3b2f6e",
-  },
+type Pal = {
+  name: string;
+  ground: string;
+  ground2: string;
+  path: string;
+  rock: string;
+  tree: string;
+  treeTop: string;
+  sky: string;
+  robe: string;
+  sash: string;
+};
+
+const REALMS: Pal[] = [
+  { name: "Phàm Nhân (Tân Thủ Thôn)", ground: "#3f6b45", ground2: "#356038", path: "#b49a6a", rock: "#7d8794", tree: "#245c34", treeTop: "#3c8c4d", sky: "#bfe3c4", robe: "#eef3ff", sash: "#5b7cd8" },
+  { name: "Luyện Khí Sơ Kỳ", ground: "#4a7a52", ground2: "#3f6b45", path: "#c4a87a", rock: "#888e94", tree: "#2a6640", treeTop: "#4a9c5a", sky: "#c8ecd0", robe: "#eaf3ff", sash: "#5fa0d8" },
+  { name: "Luyện Khí Viên Mãn", ground: "#2f6b6b", ground2: "#265c5c", path: "#8fb0a0", rock: "#6a8080", tree: "#1a5050", treeTop: "#3a8888", sky: "#a0e0d8", robe: "#e0f5ff", sash: "#3fa0a8" },
+  { name: "Trúc Cơ", ground: "#2a4a6b", ground2: "#223e5c", path: "#7a9ac4", rock: "#5a6a8a", tree: "#1a3a5a", treeTop: "#3a6a9c", sky: "#9cc8e8", robe: "#e8eeff", sash: "#4a6ad8" },
+  { name: "Kim Đan", ground: "#6b5a2a", ground2: "#5c4a22", path: "#d4b46a", rock: "#8a7a5a", tree: "#5a4a1a", treeTop: "#9c8030", sky: "#e8d8a0", robe: "#fff4e0", sash: "#d8a84a" },
+  { name: "Nguyên Anh", ground: "#4a2a6b", ground2: "#3e225c", path: "#9a7ac4", rock: "#6a5a8a", tree: "#3a1a5a", treeTop: "#7b5ad1", sky: "#d0b8e8", robe: "#ece0ff", sash: "#9a6ad8" },
+  { name: "Hóa Thần", ground: "#5a2a5c", ground2: "#4a2250", path: "#b47ad4", rock: "#7a5a8a", tree: "#4a1a5a", treeTop: "#9b5ad1", sky: "#e0b8e8", robe: "#f5e0ff", sash: "#b85ad8" },
+  { name: "Hợp Thể", ground: "#6b2a4a", ground2: "#5c2240", path: "#d47a9a", rock: "#8a5a7a", tree: "#5a1a3a", treeTop: "#d15a8a", sky: "#f0c0d0", robe: "#ffe0ee", sash: "#d84a7a" },
+  { name: "Đại Thừa", ground: "#4a5a6b", ground2: "#3e4e5c", path: "#c4ccd4", rock: "#9aa0aa", tree: "#3a4a5a", treeTop: "#8a9aaa", sky: "#e0e8f0", robe: "#f0f5ff", sash: "#9aa0c8" },
+  { name: "Độ Kiếp Thành Tiên", ground: "#6b6a3a", ground2: "#5c5a30", path: "#ffd870", rock: "#b0a86a", tree: "#5a5a2a", treeTop: "#d4c860", sky: "#fff4c8", robe: "#fffbe6", sash: "#ffce4a" },
 ];
 
 function rnd(seed: number) {
@@ -83,8 +87,8 @@ function rnd(seed: number) {
   };
 }
 
-function makeScenery(realm: Realm) {
-  const r = rnd(realm === 0 ? 991 : 4242);
+function makeScenery(level: number) {
+  const r = rnd(991 + level * 137);
   const trees: { x: number; y: number; s: number }[] = [];
   const rocks: { x: number; y: number; s: number }[] = [];
   for (let i = 0; i < 70; i++) trees.push({ x: r() * W, y: r() * H, s: 0.7 + r() * 0.7 });
@@ -92,8 +96,8 @@ function makeScenery(realm: Realm) {
   return { trees, rocks };
 }
 
-function makeItems(realm: Realm): Item[] {
-  const r = rnd(realm === 0 ? 77 : 555);
+function makeItems(level: number): Item[] {
+  const r = rnd(77 + level * 53);
   const out: Item[] = [];
   for (let i = 0; i < 14; i++) {
     out.push({
@@ -109,11 +113,12 @@ function makeItems(realm: Realm): Item[] {
 
 function Game() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [realm, setRealm] = useState<Realm>(0);
+  const [level, setLevel] = useState(0);
   const [tuvi, setTuvi] = useState(0);
   const [question, setQuestion] = useState<{ q: Q; itemId: number } | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [levelUp, setLevelUp] = useState(false);
+  const [ascended, setAscended] = useState(false);
 
   const stateRef = useRef({
     px: W / 2,
@@ -126,7 +131,7 @@ function Game() {
     t: 0,
   });
 
-  stateRef.current.paused = question !== null || levelUp;
+  stateRef.current.paused = question !== null || levelUp || ascended;
 
   const openQuestion = useCallback((itemId: number) => {
     const q = QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)]!;
@@ -158,7 +163,7 @@ function Game() {
 
     const draw = () => {
       const s = stateRef.current;
-      const pal = REALMS[realm]!;
+      const pal = REALMS[level]!;
       s.t += 1;
 
       let dx = s.dir.x;
@@ -288,7 +293,7 @@ function Game() {
       ctx.ellipse(s.px, s.py + 22, 14, 5, 0, 0, Math.PI * 2);
       ctx.fill();
       // robe
-      ctx.fillStyle = realm === 0 ? "#eef3ff" : "#dcd0ff";
+      ctx.fillStyle = pal.robe;
       ctx.beginPath();
       ctx.moveTo(s.px - 13, s.py + 20 + bob);
       ctx.lineTo(s.px + 13, s.py + 20 + bob);
@@ -297,7 +302,7 @@ function Game() {
       ctx.closePath();
       ctx.fill();
       // sash
-      ctx.fillStyle = "#5b7cd8";
+      ctx.fillStyle = pal.sash;
       ctx.fillRect(s.px - 10, s.py + 4 + bob, 20, 5);
       // head
       ctx.fillStyle = "#f6d7b0";
@@ -324,7 +329,7 @@ function Game() {
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);
     };
-  }, [realm, openQuestion]);
+  }, [level, openQuestion]);
 
   const answer = (idx: number) => {
     if (!question) return;
@@ -336,9 +341,15 @@ function Game() {
       s.glow = 60;
       setFeedback("Chính xác! +1 Tu Vi");
       setTuvi((v) => {
-        const nv = Math.min(10, v + 1);
-        if (nv >= 10 && realm === 0) setLevelUp(true);
-        return nv;
+        const nv = v + 1;
+        if (nv >= TUVI_MAX) {
+          if (level >= MAX_LEVEL) {
+            setAscended(true);
+          } else {
+            setLevelUp(true);
+          }
+        }
+        return Math.min(TUVI_MAX, nv);
       });
     } else {
       setFeedback(`Sai rồi! -1 Tu Vi. Đáp án: ${question.q.a[question.q.c]!}`);
@@ -356,15 +367,28 @@ function Game() {
   };
 
   const ascend = () => {
+    const next = level + 1;
     const s = stateRef.current;
-    s.items = makeItems(1);
-    s.scenery = makeScenery(1);
+    s.items = makeItems(next);
+    s.scenery = makeScenery(next);
     s.px = W / 2;
     s.py = H / 2;
     s.glow = 90;
-    setRealm(1);
+    setLevel(next);
     setTuvi(0);
     setLevelUp(false);
+  };
+
+  const restart = () => {
+    const s = stateRef.current;
+    s.items = makeItems(0);
+    s.scenery = makeScenery(0);
+    s.px = W / 2;
+    s.py = H / 2;
+    s.glow = 90;
+    setLevel(0);
+    setTuvi(0);
+    setAscended(false);
   };
 
   // joystick
@@ -394,6 +418,8 @@ function Game() {
     stateRef.current.dir = { x: 0, y: 0 };
   };
 
+  const pal = REALMS[level]!;
+
   return (
     <main className="relative h-screen w-screen overflow-hidden bg-background select-none">
       <h1 className="sr-only">Tu Tiên Ký - Game tu luyện 2D top-down</h1>
@@ -402,20 +428,34 @@ function Game() {
       {/* HUD */}
       <div className="pointer-events-none absolute left-4 top-4 rounded-xl bg-black/55 px-4 py-3 text-sm text-white backdrop-blur">
         <div className="font-semibold tracking-wide">
-          Cảnh giới: <span className="text-amber-300">{REALMS[realm]!.name}</span>
+          Cấp {level}: <span className="text-amber-300">{pal.name}</span>
         </div>
         <div className="mt-1">
-          Tu Vi: <span className="text-cyan-300">{tuvi}</span> / 10
+          Tu Vi: <span className="text-cyan-300">{tuvi}</span> / {TUVI_MAX}
         </div>
         <div className="mt-2 h-2 w-44 overflow-hidden rounded-full bg-white/20">
           <div
             className="h-full rounded-full bg-gradient-to-r from-cyan-300 to-amber-300 transition-all"
-            style={{ width: `${tuvi * 10}%` }}
+            style={{ width: `${(tuvi / TUVI_MAX) * 100}%` }}
           />
         </div>
         <div className="mt-2 text-xs text-white/70">
           Chạm Nguyên Thạch (xanh) hoặc Bí Kíp (vàng) để trả lời trắc nghiệm.
         </div>
+      </div>
+
+      {/* Level progress dots */}
+      <div className="pointer-events-none absolute right-4 top-4 flex flex-col items-end gap-1 rounded-xl bg-black/45 px-3 py-2 text-[10px] text-white/80 backdrop-blur">
+        <div className="mb-1 tracking-widest uppercase">Cảnh Giới</div>
+        {REALMS.map((r, i) => (
+          <div
+            key={i}
+            className={`flex items-center gap-1 ${i === level ? "font-bold text-amber-300" : i < level ? "text-cyan-300/70" : "text-white/35"}`}
+          >
+            <span>{i < level ? "✓" : i === level ? "▶" : "○"}</span>
+            <span>C{i}</span>
+          </div>
+        ))}
       </div>
 
       {feedback && (
@@ -465,20 +505,39 @@ function Game() {
         </div>
       )}
 
-      {/* Level up */}
+      {/* Level up (breakthrough) */}
       {levelUp && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/70 p-4">
           <div className="max-w-sm rounded-2xl border border-violet-300/40 bg-slate-900/95 p-6 text-center text-white shadow-2xl">
             <div className="text-3xl">✦</div>
             <h2 className="mt-2 text-xl font-bold text-violet-200">Đột phá thành công!</h2>
             <p className="mt-2 text-sm text-white/80">
-              Tu Vi đã đạt 10/10. Ngươi rời Tân Thủ Thôn, bước vào Bí Cảnh huyền ảo.
+              Ngươi đột phá lên <span className="font-semibold text-amber-300">Cấp {level + 1}: {REALMS[level + 1]!.name}</span>.
             </p>
             <button
               onClick={ascend}
               className="mt-5 w-full rounded-lg bg-violet-500 px-4 py-3 text-sm font-semibold transition-colors hover:bg-violet-400"
             >
-              Tiến vào Bí Cảnh
+              Tiến vào cảnh giới mới
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Final ascension - became immortal */}
+      {ascended && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/80 p-4">
+          <div className="max-w-sm rounded-2xl border border-amber-300/50 bg-slate-900/95 p-6 text-center text-white shadow-2xl">
+            <div className="text-4xl">☀</div>
+            <h2 className="mt-2 text-xl font-bold text-amber-200">Độ Kiếp Thành Tiên!</h2>
+            <p className="mt-2 text-sm text-white/80">
+              Ngươi đã đột phá qua 10 cảnh giới, vượt qua Thiên Kiếp, phi thăng thành Tiên nhân, đứng trên vạn vật.
+            </p>
+            <button
+              onClick={restart}
+              className="mt-5 w-full rounded-lg bg-amber-500 px-4 py-3 text-sm font-semibold transition-colors hover:bg-amber-400"
+            >
+              Trùng sinh — tu luyện lại từ đầu
             </button>
           </div>
         </div>
