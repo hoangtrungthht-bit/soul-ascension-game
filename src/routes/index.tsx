@@ -129,7 +129,7 @@ function Game() {
   stateRef.current.paused = question !== null || levelUp;
 
   const openQuestion = useCallback((itemId: number) => {
-    const q = QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)];
+    const q = QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)]!;
     setQuestion({ q, itemId });
   }, []);
 
@@ -158,7 +158,7 @@ function Game() {
 
     const draw = () => {
       const s = stateRef.current;
-      const pal = REALMS[realm];
+      const pal = REALMS[realm]!;
       s.t += 1;
 
       let dx = s.dir.x;
@@ -341,7 +341,7 @@ function Game() {
         return nv;
       });
     } else {
-      setFeedback(`Sai rồi! -1 Tu Vi. Đáp án: ${question.q.a[question.q.c]}`);
+      setFeedback(`Sai rồi! -1 Tu Vi. Đáp án: ${question.q.a[question.q.c]!}`);
       setTuvi((v) => Math.max(0, v - 1));
       const it = s.items.find((i) => i.id === question.itemId);
       if (it) {
@@ -402,7 +402,7 @@ function Game() {
       {/* HUD */}
       <div className="pointer-events-none absolute left-4 top-4 rounded-xl bg-black/55 px-4 py-3 text-sm text-white backdrop-blur">
         <div className="font-semibold tracking-wide">
-          Cảnh giới: <span className="text-amber-300">{REALMS[realm].name}</span>
+          Cảnh giới: <span className="text-amber-300">{REALMS[realm]!.name}</span>
         </div>
         <div className="mt-1">
           Tu Vi: <span className="text-cyan-300">{tuvi}</span> / 10
