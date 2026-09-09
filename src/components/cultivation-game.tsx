@@ -216,7 +216,7 @@ export default function CultivationGame() {
           const nextIdx = getRealmIndex(next)
           setTuVi(next)
           if (nextIdx > prevIdx) {
-            setBreakthrough(REALMS[nextIdx].name)
+            setBreakthrough(REALMS[nextIdx]?.name ?? "Cảnh Giới Mới")
             window.setTimeout(() => setBreakthrough(null), 2600)
             // Sang nhóm Tiên Cảnh mới: fade out/in 1s + toast
             const prevGroup = getRealmGroup(prevIdx)
@@ -382,6 +382,10 @@ export default function CultivationGame() {
 
       // --- VẼ ---
       const theme = REALM_THEMES[envGroupRef.current]
+      if (!theme) {
+        rafRef.current = requestAnimationFrame(loop)
+        return
+      }
       const g = envGroupRef.current
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
       ctx.clearRect(0, 0, w, h)
@@ -684,6 +688,11 @@ export default function CultivationGame() {
           bolt.next = t + rand(900, 2400)
         }
         if (t < bolt.until && bolt.pts.length > 1) {
+          const firstPoint = bolt.pts[0]
+          if (!firstPoint) {
+            rafRef.current = requestAnimationFrame(loop)
+            return
+          }
           const alpha = (bolt.until - t) / 160
           ctx.save()
           ctx.strokeStyle = `rgba(190, 215, 255, ${0.85 * alpha})`
@@ -691,7 +700,7 @@ export default function CultivationGame() {
           ctx.shadowColor = "rgba(160, 190, 255, 0.9)"
           ctx.shadowBlur = 14
           ctx.beginPath()
-          ctx.moveTo(bolt.pts[0].x, bolt.pts[0].y)
+          ctx.moveTo(firstPoint.x, firstPoint.y)
           for (const p of bolt.pts.slice(1)) ctx.lineTo(p.x, p.y)
           ctx.stroke()
           ctx.restore()
@@ -736,7 +745,8 @@ export default function CultivationGame() {
   }, [])
 
   const realmIdx = getRealmIndex(tuVi)
-  const realm = REALMS[realmIdx]
+  const realm = REALMS[realmIdx] ?? REALMS[0]
+  if (!realm) return null
   const nextRealm = REALMS[realmIdx + 1]
   const progress = nextRealm
     ? Math.min(100, ((tuVi - realm.threshold) / (nextRealm.threshold - realm.threshold)) * 100)

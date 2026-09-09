@@ -21,7 +21,8 @@ export const REALMS: Realm[] = [
 export function getRealmIndex(tuVi: number): number {
   let idx = 0
   for (let i = 0; i < REALMS.length; i++) {
-    if (tuVi >= REALMS[i].threshold) idx = i
+    const realm = REALMS[i]
+    if (realm && tuVi >= realm.threshold) idx = i
   }
   return idx
 }
@@ -109,5 +110,7 @@ export const QUESTIONS: Question[] = [
 ]
 
 export function randomQuestion(): Question {
-  return QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)]
+  const question = QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)]
+  if (!question) throw new Error("Không có câu hỏi trắc nghiệm")
+  return question
 }
