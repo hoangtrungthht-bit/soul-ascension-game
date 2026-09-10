@@ -42,14 +42,15 @@ export const STONE_RESPAWN_MS = 12_000
 export function getRealmIndex(tuVi: number): number {
   let idx = 0
   for (let i = 0; i < REALMS.length; i++) {
-    if (tuVi >= REALMS[i].threshold) idx = i
+    const realm = REALMS[i]
+    if (realm && tuVi >= realm.threshold) idx = i
   }
   return idx
 }
 
 export function getRealmThemeGroup(realmIdx: number): number {
   const clamped = Math.max(0, Math.min(realmIdx, REALMS.length - 1))
-  return REALMS[clamped].group
+  return REALMS[clamped]?.group ?? 0
 }
 
 export function getTuViCap(tuVi: number): number {

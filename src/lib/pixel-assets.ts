@@ -70,7 +70,7 @@ function chromaKeyMagenta(img: HTMLImageElement): HTMLCanvasElement {
 
   const bgScore = (p: number) => {
     const i = p * 4
-    return magentaness(d[i], d[i + 1], d[i + 2])
+    return magentaness(d[i] ?? 0, d[i + 1] ?? 0, d[i + 2] ?? 0)
   }
 
   const visit = (x: number, y: number) => {
@@ -82,7 +82,7 @@ function chromaKeyMagenta(img: HTMLImageElement): HTMLCanvasElement {
     if (s > 30) {
       // Vùng nền hoặc quầng chuyển tiếp: alpha giảm dần theo độ magenta
       const alpha = s > 100 ? 0 : Math.round(255 * (1 - (s - 30) / 70))
-      d[p * 4 + 3] = Math.min(d[p * 4 + 3], alpha)
+      d[p * 4 + 3] = Math.min(d[p * 4 + 3] ?? 0, alpha)
       if (alpha === 0) stack.push(p)
     }
   }
