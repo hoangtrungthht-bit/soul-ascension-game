@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
+import { BookOpen, X } from "lucide-react"
 import {
   loadPixelAssets,
   PLAYER_DIR_ROW,
@@ -10,8 +11,17 @@ import {
   type PixelAssets,
   type PlayerDirection,
 } from "@/lib/pixel-assets"
-import { getRealmIndex, randomQuestion, REALMS, type Question } from "@/lib/cultivation-data"
-import { getRealmGroup, REALM_THEMES, rewardMultiplier } from "@/lib/realm-themes"
+import {
+  getRealmIndex,
+  getTuViCap,
+  LINH_THACH_REWARD,
+  randomQuestion,
+  REALMS,
+  STONE_RESPAWN_MS,
+  TU_VI_REWARD,
+  type Question,
+} from "@/lib/cultivation-data"
+import { REALM_THEMES } from "@/lib/realm-themes"
 
 const WORLD = 2200
 const PLAYER_R = 26
@@ -20,7 +30,9 @@ const PLAYER_SPEED = 190
 const GROUND_TILE = 288
 
 type Vec = { x: number; y: number }
-type Interactive = { id: number; x: number; y: number; type: "stone" | "book"; active: boolean; respawnAt: number }
+type Interactive = { id: number; x: number; y: number; type: "stone"; active: boolean; respawnAt: number }
+type QuizSource = "stone" | "manual"
+type QuizState = { q: Question; objId: number | null; source: QuizSource }
 type Tree = { x: number; y: number; scale: number }
 type Herb = { x: number; y: number; phase: number; h: number }
 type Mote = { x: number; y: number; r: number; speed: number; phase: number }
@@ -74,11 +86,13 @@ export default function CultivationGame() {
   const directionRef = useRef<PlayerDirection>("down")
   const frameIndexRef = useRef(0)
   const frameTimerRef = useRef(0)
+  const movingRef = useRef(false)
 
   const [ready, setReady] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [tuVi, setTuVi] = useState(0)
-  const [quiz, setQuiz] = useState<{ q: Question; objId: number } | null>(null)
+  const [linhThach, setLinhThach] = useState(0)
+  const [quiz, setQuiz] = useState<QuizState | null>(null)
   const [picked, setPicked] = useState<number | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const [breakthrough, setBreakthrough] = useState<string | null>(null)
@@ -86,6 +100,9 @@ export default function CultivationGame() {
   const [envToast, setEnvToast] = useState<string | null>(null)
 
   const tuViRef = useRef(0)
+  const camRef = useRef({ x: 0, y: 0 })
+  const nearStoneRef = useRef<number | null>(null)
+  const lastQuestionRef = useRef<Question | undefined>(undefined)
   useEffect(() => {
     tuViRef.current = tuVi
   }, [tuVi])
@@ -94,7 +111,7 @@ export default function CultivationGame() {
     const v = Number(new URLSearchParams(window.location.search).get("tuvi") || 0)
     if (Number.isFinite(v) && v > 0) {
       setTuVi(v)
-      envGroupRef.current = getRealmGroup(getRealmIndex(v))
+      envGroupRef.current = REALMS[getRealmIndex(v)].group
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -163,14 +180,15 @@ export default function CultivationGame() {
         }
         motesRef.current = motes
 
-        // Vật thể tương tác (Linh Thạch / Bí Kíp)
+        // Linh Thạch rải trên bản đồ
         const objects: Interactive[] = []
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0; i < 12; i++) {
+          const nearSpawn = i < 2
           objects.push({
             id: i,
-            x: rand(160, WORLD - 160),
-            y: rand(160, WORLD - 160),
-            type: i % 3 === 0 ? "book" : "stone",
+            x: nearSpawn ? WORLD / 2 + rand(-200, 200) : rand(160, WORLD - 160),
+            y: nearSpawn ? WORLD / 2 + rand(80, 220) : rand(160, WORLD - 160),
+            type: "stone",
             active: true,
             respawnAt: 0,
           })
@@ -189,15 +207,56 @@ export default function CultivationGame() {
   }, [])
 
   const relocate = useCallback((o: Interactive) => {
-    o.x = rand(160, WORLD - 160)
-    o.y = rand(160, WORLD - 160)
+    const player = playerRef.current
+    let x = 0
+    let y = 0
+    do {
+      x = rand(160, WORLD - 160)
+      y = rand(160, WORLD - 160)
+    } while (Math.hypot(x - player.x, y - player.y) < 180)
+    o.x = x
+    o.y = y
     o.active = true
   }, [])
 
-  const openQuiz = useCallback((objId: number) => {
+  const grantTuVi = useCallback((amount: number) => {
+    const prevIdx = getRealmIndex(tuViRef.current)
+    const next = tuViRef.current + amount
+    const nextIdx = getRealmIndex(next)
+    setTuVi(next)
+    if (nextIdx > prevIdx) {
+      setBreakthrough(REALMS[nextIdx].name)
+      window.setTimeout(() => setBreakthrough(null), 2600)
+      const prevGroup = REALMS[prevIdx].group
+      const nextGroup = REALMS[nextIdx].group
+      if (nextGroup > prevGroup) {
+        setEnvFade("out")
+        window.setTimeout(() => {
+          envGroupRef.current = nextGroup
+          setEnvFade("in")
+          setEnvToast("Mở khóa Tiên Cảnh Mới!")
+          window.setTimeout(() => setEnvFade("idle"), 1000)
+          window.setTimeout(() => setEnvToast(null), 2400)
+        }, 1000)
+      }
+    } else {
+      setToast(`+${amount} Tu Vi`)
+      window.setTimeout(() => setToast(null), 1400)
+    }
+  }, [])
+
+  const openQuiz = useCallback((source: QuizSource, objId: number | null) => {
     pausedRef.current = true
     setPicked(null)
-    setQuiz({ q: randomQuestion(), objId })
+    const q = randomQuestion(lastQuestionRef.current)
+    lastQuestionRef.current = q
+    setQuiz({ q, objId, source })
+  }, [])
+
+  const closeQuiz = useCallback(() => {
+    setQuiz(null)
+    setPicked(null)
+    pausedRef.current = false
   }, [])
 
   const answer = useCallback(
@@ -205,50 +264,33 @@ export default function CultivationGame() {
       if (!quiz || picked !== null) return
       setPicked(idx)
       const correct = idx === quiz.q.answer
-      const obj = objectsRef.current.find((o) => o.id === quiz.objId)
+      const obj = quiz.objId != null ? objectsRef.current.find((o) => o.id === quiz.objId) : undefined
+      const source = quiz.source
 
       window.setTimeout(() => {
-        if (correct) {
-          const prevIdx = getRealmIndex(tuViRef.current)
-          // Linh Khí thưởng tăng theo nhóm cảnh giới hiện tại
-          const reward = quiz.q.reward * rewardMultiplier(prevIdx)
-          const next = tuViRef.current + reward
-          const nextIdx = getRealmIndex(next)
-          setTuVi(next)
-          if (nextIdx > prevIdx) {
-            setBreakthrough(REALMS[nextIdx]?.name ?? "Cảnh Giới Mới")
-            window.setTimeout(() => setBreakthrough(null), 2600)
-            // Sang nhóm Tiên Cảnh mới: fade out/in 1s + toast
-            const prevGroup = getRealmGroup(prevIdx)
-            const nextGroup = getRealmGroup(nextIdx)
-            if (nextGroup > prevGroup) {
-              setEnvFade("out")
-              window.setTimeout(() => {
-                envGroupRef.current = nextGroup
-                setEnvFade("in")
-                setEnvToast("Mở khóa Tiên Cảnh Mới!")
-                window.setTimeout(() => setEnvFade("idle"), 1000)
-                window.setTimeout(() => setEnvToast(null), 2400)
-              }, 1000)
+        if (source === "stone") {
+          if (correct) {
+            setLinhThach((n) => n + LINH_THACH_REWARD)
+            setToast(`+${LINH_THACH_REWARD} Linh Thạch 💎`)
+            window.setTimeout(() => setToast(null), 1400)
+            if (obj) {
+              obj.active = false
+              obj.respawnAt = performance.now() + STONE_RESPAWN_MS
             }
           } else {
-            setToast(`+${reward} Tu Vi`)
-            window.setTimeout(() => setToast(null), 1400)
+            setToast("Thần thức chấn động — không nhận được Linh Thạch")
+            window.setTimeout(() => setToast(null), 1600)
           }
+        } else if (correct) {
+          grantTuVi(TU_VI_REWARD)
         } else {
           setToast("Trả lời sai — Tâm ma quấy nhiễu!")
           window.setTimeout(() => setToast(null), 1500)
         }
-        if (obj) {
-          obj.active = false
-          obj.respawnAt = performance.now() + 2600
-        }
-        setQuiz(null)
-        setPicked(null)
-        pausedRef.current = false
+        closeQuiz()
       }, 750)
     },
-    [quiz, picked],
+    [quiz, picked, grantTuVi, closeQuiz],
   )
 
   // Điều khiển bàn phím (bổ trợ cho Joystick)
@@ -316,8 +358,8 @@ export default function CultivationGame() {
           dy /= len
         }
 
-        const inputStrength = Math.min(1, Math.hypot(dx, dy))
-        const moving = inputStrength > 0.15
+        const moving = Math.hypot(dx, dy) > 0.15
+        movingRef.current = moving
         if (moving) {
           // Hướng ưu tiên theo trục có biên độ lớn hơn
           if (Math.abs(dx) >= Math.abs(dy)) {
@@ -325,11 +367,10 @@ export default function CultivationGame() {
           } else {
             directionRef.current = dy < 0 ? "up" : "down"
           }
-          // Đi đủ sáu frame theo đúng thứ tự; joystick càng nghiêng thì nhịp chân càng nhanh.
-          const frameDuration = PLAYER_FRAME_MS / Math.max(0.45, inputStrength)
+          // Đổi frame 0 -> 3 mỗi PLAYER_FRAME_MS
           frameTimerRef.current += dt * 1000
-          while (frameTimerRef.current >= frameDuration) {
-            frameTimerRef.current -= frameDuration
+          while (frameTimerRef.current >= PLAYER_FRAME_MS) {
+            frameTimerRef.current -= PLAYER_FRAME_MS
             frameIndexRef.current = (frameIndexRef.current + 1) % PLAYER_FRAMES
           }
         } else {
@@ -356,7 +397,8 @@ export default function CultivationGame() {
         player.x = nx
         player.y = ny
 
-        // Hồi sinh vật thể + kiểm tra va chạm mở trắc nghiệm
+        // Hồi sinh Linh Thạch + chạm gần để mở trắc nghiệm
+        let touching: number | null = null
         for (const o of objectsRef.current) {
           if (!o.active) {
             if (o.respawnAt && t >= o.respawnAt) {
@@ -366,10 +408,15 @@ export default function CultivationGame() {
             continue
           }
           if (Math.hypot(player.x - o.x, player.y - o.y) < PLAYER_R + 26) {
-            openQuiz(o.id)
+            touching = o.id
+            if (nearStoneRef.current !== o.id) {
+              nearStoneRef.current = o.id
+              openQuiz("stone", o.id)
+            }
             break
           }
         }
+        if (touching === null) nearStoneRef.current = null
       }
 
       // Camera
@@ -377,15 +424,12 @@ export default function CultivationGame() {
       let camY = player.y - h / 2
       camX = Math.max(0, Math.min(WORLD - w, camX))
       camY = Math.max(0, Math.min(WORLD - h, camY))
+      camRef.current = { x: camX, y: camY }
       const inView = (x: number, y: number, pad: number) =>
         x > camX - pad && x < camX + w + pad && y > camY - pad && y < camY + h + pad
 
       // --- VẼ ---
       const theme = REALM_THEMES[envGroupRef.current]
-      if (!theme) {
-        rafRef.current = requestAnimationFrame(loop)
-        return
-      }
       const g = envGroupRef.current
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
       ctx.clearRect(0, 0, w, h)
@@ -470,9 +514,9 @@ export default function CultivationGame() {
       for (const o of objectsRef.current) {
         if (!o.active) continue
         if (!inView(o.x, o.y, 80)) continue
-        const baseImg = o.type === "stone" ? assets.stone : assets.scroll
-        const img = o.type === "stone" ? (assets.tinted.stone[g] ?? baseImg) : (assets.tinted.scroll[g] ?? baseImg)
-        const dh = o.type === "stone" ? SPRITE_HEIGHTS.stone : SPRITE_HEIGHTS.scroll
+        const baseImg = assets.stone
+        const img = assets.tinted.stone[g] ?? baseImg
+        const dh = SPRITE_HEIGHTS.stone
         const dw = (img.width / img.height) * dh
         const float = Math.sin(t / 420 + o.id) * 6
         drawables.push({
@@ -481,8 +525,7 @@ export default function CultivationGame() {
             // Trung Phẩm trở lên: nhịp pulse mạnh hơn
             const pulseSpeed = theme.stonePulse ? 170 : 240
             const pulse = 0.5 + 0.5 * Math.sin(t / pulseSpeed + o.id * 2)
-            const isStone = o.type === "stone"
-            const glowColor = isStone ? theme.stoneGlow : theme.bookGlow
+            const glowColor = theme.stoneGlow
 
             // Trận pháp quay dưới chân vật phẩm (Tiên Tráp / Tiên Thạch)
             if (theme.formationRing) {
@@ -512,19 +555,15 @@ export default function CultivationGame() {
             ctx.fill()
             ctx.restore()
 
-            // Hào quang toả sáng — Tiên Thạch xoay hue rainbow, Ngọc Giản/Tiên Tráp ngũ sắc
+            // Hào quang toả sáng — Tiên Thạch xoay hue rainbow
             ctx.save()
             const cy = o.y + float
             let c0: string
             let c1: string
-            if (isStone && theme.stoneRainbow) {
+            if (theme.stoneRainbow) {
               const hue = (t / 12 + o.id * 60) % 360
               c0 = `hsla(${hue}, 95%, 72%, ${0.5 + 0.25 * pulse})`
               c1 = `hsla(${(hue + 90) % 360}, 95%, 65%, 0)`
-            } else if (!isStone && theme.bookRainbowAura) {
-              const hue = (t / 16 + o.id * 45) % 360
-              c0 = `hsla(${hue}, 90%, 75%, ${0.4 + 0.2 * pulse})`
-              c1 = `hsla(${(hue + 140) % 360}, 90%, 70%, 0)`
             } else {
               c0 = `rgba(${glowColor}, ${0.35 + 0.25 * pulse})`
               c1 = `rgba(${glowColor}, 0)`
@@ -539,7 +578,7 @@ export default function CultivationGame() {
             ctx.restore()
 
             // Tia particle bắn ra quanh Thượng Phẩm / Tiên Thạch
-            if (isStone && theme.stoneParticles) {
+            if (theme.stoneParticles) {
               ctx.save()
               for (let i = 0; i < 6; i++) {
                 const a = t / 300 + (Math.PI * 2 * i) / 6
@@ -555,32 +594,18 @@ export default function CultivationGame() {
               ctx.restore()
             }
 
-            // Linh khí xoay quanh sách (Lụa Thư / Ngọc Giản / Tiên Tráp)
-            if (!isStone && theme.bookSwirl) {
-              ctx.save()
-              ctx.strokeStyle = `rgba(${glowColor}, 0.55)`
-              ctx.lineWidth = 1.6
-              for (let i = 0; i < 3; i++) {
-                const a0 = t / 350 + (Math.PI * 2 * i) / 3
-                ctx.beginPath()
-                ctx.arc(o.x, cy, dh * 0.55, a0, a0 + Math.PI * 0.55)
-                ctx.stroke()
-              }
-              ctx.restore()
-            }
-
             // Sprite vật thể
             const s = 1 + 0.04 * pulse
             ctx.drawImage(img, o.x - (dw * s) / 2, o.y - (dh * s) / 2 + float, dw * s, dh * s)
 
-            // Nhãn phẩm cấp vật phẩm
+            // Nhãn phẩm cấp
             ctx.save()
             ctx.font = "11px serif"
             ctx.textAlign = "center"
             ctx.fillStyle = `rgba(${glowColor}, 0.9)`
             ctx.shadowColor = `rgba(${glowColor}, 0.8)`
             ctx.shadowBlur = 6
-            ctx.fillText(isStone ? theme.stoneLabel : theme.bookLabel, o.x, o.y - dh * 0.62 + float)
+            ctx.fillText(theme.stoneLabel, o.x, o.y - dh * 0.62 + float)
             ctx.restore()
           },
         })
@@ -688,11 +713,6 @@ export default function CultivationGame() {
           bolt.next = t + rand(900, 2400)
         }
         if (t < bolt.until && bolt.pts.length > 1) {
-          const firstPoint = bolt.pts[0]
-          if (!firstPoint) {
-            rafRef.current = requestAnimationFrame(loop)
-            return
-          }
           const alpha = (bolt.until - t) / 160
           ctx.save()
           ctx.strokeStyle = `rgba(190, 215, 255, ${0.85 * alpha})`
@@ -700,7 +720,7 @@ export default function CultivationGame() {
           ctx.shadowColor = "rgba(160, 190, 255, 0.9)"
           ctx.shadowBlur = 14
           ctx.beginPath()
-          ctx.moveTo(firstPoint.x, firstPoint.y)
+          ctx.moveTo(bolt.pts[0].x, bolt.pts[0].y)
           for (const p of bolt.pts.slice(1)) ctx.lineTo(p.x, p.y)
           ctx.stroke()
           ctx.restore()
@@ -744,13 +764,34 @@ export default function CultivationGame() {
     setKnob({ x: 0, y: 0 })
   }, [])
 
+  const tryClickStone = useCallback(
+    (clientX: number, clientY: number) => {
+      if (!ready || quiz || pausedRef.current) return
+      const wrap = wrapRef.current
+      if (!wrap) return
+      const rect = wrap.getBoundingClientRect()
+      const worldX = clientX - rect.left + camRef.current.x
+      const worldY = clientY - rect.top + camRef.current.y
+      for (const o of objectsRef.current) {
+        if (!o.active) continue
+        if (Math.hypot(worldX - o.x, worldY - o.y) < 42) {
+          nearStoneRef.current = o.id
+          openQuiz("stone", o.id)
+          return
+        }
+      }
+    },
+    [ready, quiz, openQuiz],
+  )
+
   const realmIdx = getRealmIndex(tuVi)
-  const realm = REALMS[realmIdx] ?? REALMS[0]
-  if (!realm) return null
+  const realm = REALMS[realmIdx]
   const nextRealm = REALMS[realmIdx + 1]
+  const tuViCap = getTuViCap(tuVi)
   const progress = nextRealm
     ? Math.min(100, ((tuVi - realm.threshold) / (nextRealm.threshold - realm.threshold)) * 100)
     : 100
+  const isManual = quiz?.source === "manual"
 
   return (
     <div
@@ -760,7 +801,14 @@ export default function CultivationGame() {
       onPointerUp={endJoy}
       onPointerLeave={endJoy}
     >
-      <canvas ref={canvasRef} className="absolute inset-0" />
+      <canvas
+        ref={canvasRef}
+        className="absolute inset-0"
+        onPointerDown={(e) => {
+          if (joyActiveRef.current) return
+          tryClickStone(e.clientX, e.clientY)
+        }}
+      />
 
       {/* Màn hình nạp tài nguyên */}
       {!ready && (
@@ -779,17 +827,20 @@ export default function CultivationGame() {
 
       {/* HUD trên cùng */}
       <div className="pointer-events-none absolute inset-x-0 top-0 flex flex-col items-center gap-2 p-4">
-        <div className="flex items-center gap-3 rounded-full border border-gold/30 bg-ink/70 px-5 py-2 backdrop-blur-sm">
-          <span className="font-serif text-lg tracking-wide text-gold text-balance">
-            Cảnh Giới: {realm.name}
+        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 rounded-full border border-gold/30 bg-ink/70 px-5 py-2 backdrop-blur-sm">
+          <span className="font-serif text-lg tracking-wide text-gold text-balance">Cảnh Giới: {realm.name}</span>
+          <span className="text-xs text-jade-soft">
+            Tu Vi: {tuVi}/{tuViCap}
           </span>
-          <span className="text-xs text-jade-soft/70">({realmIdx + 1}/10)</span>
+          <span className="text-xs text-gold/90">Linh Thạch: {linhThach} 💎</span>
         </div>
 
         <div className="w-full max-w-md">
           <div className="mb-1 flex justify-between text-xs text-jade-soft">
-            <span>Tu Vi: {tuVi}</span>
-            <span>{nextRealm ? `→ ${nextRealm.name} (${nextRealm.threshold})` : "Viên mãn"}</span>
+            <span>
+              {realm.name} ({realmIdx + 1}/{REALMS.length})
+            </span>
+            <span>{nextRealm ? `→ ${nextRealm.name}` : "Viên mãn"}</span>
           </div>
           <div className="h-2.5 w-full overflow-hidden rounded-full border border-jade/30 bg-ink/60">
             <div
@@ -800,12 +851,26 @@ export default function CultivationGame() {
         </div>
       </div>
 
+      {/* Nút Bí Kíp luyện công */}
+      {ready && !quiz && (
+        <button
+          type="button"
+          onClick={() => openQuiz("manual", null)}
+          className="absolute left-4 top-28 z-20 flex flex-col items-center gap-1 rounded-2xl border border-gold/40 bg-ink/80 px-3 py-2 text-gold shadow-[0_0_18px_rgba(231,200,106,0.25)] backdrop-blur-sm transition hover:border-gold hover:bg-ink"
+          title="Bí Kíp — Luyện Công"
+          aria-label="Mở Bí Kíp luyện công"
+        >
+          <BookOpen className="h-7 w-7" />
+          <span className="font-serif text-[11px] tracking-wide">Bí Kíp</span>
+        </button>
+      )}
+
       {/* Bảng thang cảnh giới */}
-      <div className="pointer-events-none absolute right-4 top-24 hidden flex-col gap-1 rounded-xl border border-gold/20 bg-ink/60 p-3 backdrop-blur-sm sm:flex">
+      <div className="pointer-events-none absolute right-4 top-24 hidden max-h-[70vh] flex-col gap-0.5 overflow-y-auto rounded-xl border border-gold/20 bg-ink/60 p-3 backdrop-blur-sm sm:flex">
         {REALMS.map((r, i) => (
           <div
             key={r.name}
-            className={`flex items-center gap-2 text-xs ${
+            className={`flex items-center gap-2 text-[11px] ${
               i === realmIdx ? "text-gold" : i < realmIdx ? "text-jade-soft/50" : "text-jade-soft/30"
             }`}
           >
@@ -817,8 +882,8 @@ export default function CultivationGame() {
 
       {/* Gợi ý */}
       {!quiz && (
-        <p className="pointer-events-none absolute bottom-6 right-6 max-w-[200px] text-right text-xs leading-relaxed text-jade-soft/60">
-          Di chuyển bằng Joystick (hoặc phím WASD) đến Linh Thạch &amp; Bí Kíp để khai mở trắc nghiệm và tích lũy Tu Vi.
+        <p className="pointer-events-none absolute bottom-6 right-6 max-w-[220px] text-right text-xs leading-relaxed text-jade-soft/60">
+          Chạm Linh Thạch trên map để thu thập. Mở Bí Kíp để luyện công (+20 Tu Vi).
         </p>
       )}
 
@@ -873,11 +938,29 @@ export default function CultivationGame() {
         </div>
       )}
 
-      {/* Modal trắc nghiệm */}
+      {/* Modal trắc nghiệm: Linh Thạch hoặc Bí Kíp */}
       {quiz && (
         <div className="absolute inset-0 z-30 flex items-center justify-center bg-ink/70 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-lg rounded-2xl border border-gold/30 bg-ink/95 p-6 shadow-2xl">
-            <p className="mb-1 font-serif text-xs uppercase tracking-[0.25em] text-jade-soft/70">Khảo Nghiệm Đạo Tâm</p>
+          <div
+            className={`relative w-full max-w-lg rounded-2xl border p-6 shadow-2xl ${
+              isManual
+                ? "border-amber-400/40 bg-gradient-to-b from-amber-950/95 to-ink/95"
+                : "border-gold/30 bg-ink/95"
+            }`}
+          >
+            {isManual && picked === null && (
+              <button
+                type="button"
+                onClick={closeQuiz}
+                className="absolute right-3 top-3 rounded-full p-1 text-jade-soft/60 hover:bg-ink/50 hover:text-gold"
+                aria-label="Đóng Bí Kíp"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            )}
+            <p className="mb-1 font-serif text-xs uppercase tracking-[0.25em] text-jade-soft/70">
+              {isManual ? "Bí Kíp Luyện Công" : "Linh Thạch Khảo Nghiệm"}
+            </p>
             <h2 className="mb-5 text-pretty font-serif text-xl text-gold">{quiz.q.q}</h2>
             <div className="flex flex-col gap-3">
               {quiz.q.options.map((opt, i) => {
@@ -903,7 +986,9 @@ export default function CultivationGame() {
               })}
             </div>
             <p className="mt-4 text-center text-xs text-jade-soft/50">
-              Trả lời đúng để tăng Tu Vi &amp; đột phá cảnh giới
+              {isManual
+                ? `Trả lời đúng: +${TU_VI_REWARD} Tu Vi`
+                : `Trả lời đúng: +${LINH_THACH_REWARD} Linh Thạch 💎`}
             </p>
           </div>
         </div>
