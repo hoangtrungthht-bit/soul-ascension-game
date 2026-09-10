@@ -111,7 +111,7 @@ export default function CultivationGame() {
     const v = Number(new URLSearchParams(window.location.search).get("tuvi") || 0)
     if (Number.isFinite(v) && v > 0) {
       setTuVi(v)
-      envGroupRef.current = REALMS[getRealmIndex(v)].group
+      envGroupRef.current = REALMS[getRealmIndex(v)]?.group ?? 0
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -225,10 +225,12 @@ export default function CultivationGame() {
     const nextIdx = getRealmIndex(next)
     setTuVi(next)
     if (nextIdx > prevIdx) {
-      setBreakthrough(REALMS[nextIdx].name)
+      const nextRealm = REALMS[nextIdx]
+      if (!nextRealm) return
+      setBreakthrough(nextRealm.name)
       window.setTimeout(() => setBreakthrough(null), 2600)
-      const prevGroup = REALMS[prevIdx].group
-      const nextGroup = REALMS[nextIdx].group
+      const prevGroup = REALMS[prevIdx]?.group ?? 0
+      const nextGroup = nextRealm.group
       if (nextGroup > prevGroup) {
         setEnvFade("out")
         window.setTimeout(() => {
