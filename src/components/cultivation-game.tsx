@@ -785,7 +785,7 @@ export default function CultivationGame() {
   )
 
   const realmIdx = getRealmIndex(tuVi)
-  const realm = REALMS[realmIdx]
+  const realm = REALMS[realmIdx] ?? REALMS[0]!
   const nextRealm = REALMS[realmIdx + 1]
   const tuViCap = getTuViCap(tuVi)
   const progress = nextRealm
