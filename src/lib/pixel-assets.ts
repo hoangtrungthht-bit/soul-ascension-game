@@ -11,17 +11,17 @@ export const PIXEL_SPRITES = {
   scroll: "/assets/pixel/scroll.png",
 } as const
 
-// Sprite Sheet nhân vật: 4 hàng hướng x 6 khung bước chân gốc.
+// Sprite Sheet nhân vật: 4 hàng (hướng) x 4 cột (frame bước đi).
 export const PLAYER_DIRECTIONS = ["down", "left", "right", "up"] as const
 export type PlayerDirection = (typeof PLAYER_DIRECTIONS)[number]
 export const PLAYER_DIR_ROW: Record<PlayerDirection, number> = { down: 0, left: 1, right: 2, up: 3 }
-export const PLAYER_FRAMES = 6
-export const PLAYER_FRAME_MS = 110
+export const PLAYER_FRAMES = 4
+export const PLAYER_FRAME_MS = 120
 
-// Giữ nguyên đúng thứ tự sáu khung bước của ảnh nguồn; không lật hay tái dựng khung.
+// File gốc có 6 cột/hàng; chọn 4 cột trải đều cả vòng bước để ghép sheet 4x4.
 const SOURCE_COLS = 6
 const SOURCE_ROWS = 4
-const SOURCE_FRAME_PICK = [0, 1, 2, 3, 4, 5]
+const SOURCE_FRAME_PICK = [0, 2, 3, 5]
 
 export type SpriteSheet = {
   canvas: HTMLCanvasElement
@@ -52,10 +52,6 @@ function magentaness(r: number, g: number, b: number) {
   return (r + b) / 2 - g
 }
 
-function channel(data: Uint8ClampedArray, index: number) {
-  return data[index] ?? 0
-}
-
 // Khử nền magenta chỉ ở vùng nối liền với mép ảnh (giữ nguyên chi tiết
 // tím/hồng bên trong sprite), đồng thời làm mờ dần viền để bớt răng cưa.
 function chromaKeyMagenta(img: HTMLImageElement): HTMLCanvasElement {
@@ -74,7 +70,7 @@ function chromaKeyMagenta(img: HTMLImageElement): HTMLCanvasElement {
 
   const bgScore = (p: number) => {
     const i = p * 4
-    return magentaness(channel(d, i), channel(d, i + 1), channel(d, i + 2))
+    return magentaness(d[i] ?? 0, d[i + 1] ?? 0, d[i + 2] ?? 0)
   }
 
   const visit = (x: number, y: number) => {
@@ -86,8 +82,7 @@ function chromaKeyMagenta(img: HTMLImageElement): HTMLCanvasElement {
     if (s > 30) {
       // Vùng nền hoặc quầng chuyển tiếp: alpha giảm dần theo độ magenta
       const alpha = s > 100 ? 0 : Math.round(255 * (1 - (s - 30) / 70))
-      const alphaIndex = p * 4 + 3
-      d[alphaIndex] = Math.min(channel(d, alphaIndex), alpha)
+      d[p * 4 + 3] = Math.min(d[p * 4 + 3] ?? 0, alpha)
       if (alpha === 0) stack.push(p)
     }
   }
@@ -113,11 +108,11 @@ function chromaKeyMagenta(img: HTMLImageElement): HTMLCanvasElement {
   // Khử ánh magenta còn vương trên các pixel viền bán trong suốt
   for (let p = 0; p < w * h; p++) {
     const i = p * 4
-    const a = channel(d, i + 3)
+    const a = d[i + 3] ?? 0
     if (a > 0 && a < 255) {
-      const g = channel(d, i + 1)
-      d[i] = Math.min(channel(d, i), g + 15)
-      d[i + 2] = Math.min(channel(d, i + 2), g + 15)
+      const g = d[i + 1] ?? 0
+      d[i] = Math.min(d[i] ?? 0, g + 15)
+      d[i + 2] = Math.min(d[i + 2] ?? 0, g + 15)
     }
   }
 
@@ -136,7 +131,7 @@ function trimTransparent(src: HTMLCanvasElement): HTMLCanvasElement {
   let maxY = -1
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
-      if (channel(d, (y * w + x) * 4 + 3) > 8) {
+      if ((d[(y * w + x) * 4 + 3] ?? 0) > 8) {
         if (x < minX) minX = x
         if (x > maxX) maxX = x
         if (y < minY) minY = y
@@ -195,7 +190,7 @@ function removeCheckerBackground(img: HTMLImageElement): HTMLCanvasElement {
 
   const isBg = (p: number) => {
     const i = p * 4
-    return isCheckerGrey(channel(d, i), channel(d, i + 1), channel(d, i + 2))
+    return isCheckerGrey(d[i] ?? 0, d[i + 1] ?? 0, d[i + 2] ?? 0)
   }
   const visit = (x: number, y: number) => {
     if (x < 0 || y < 0 || x >= w || y >= h) return
@@ -247,8 +242,8 @@ function removeCheckerBackground(img: HTMLImageElement): HTMLCanvasElement {
   return off
 }
 
-// Tách sheet gốc 4x6 thành sheet sạch nền, giữ đúng hàng trái/phải và thứ tự
-// sáu khung bước. Mọi khung dùng chung một vùng cắt để nhân vật không bị giật.
+// Tách sheet gốc 4x6 thành sheet 4x4 sạch nền, mọi frame dùng chung một khung
+// cắt để nhân vật không "nhảy" vị trí giữa các frame, rồi thu về cỡ hiển thị.
 function prepareSpriteSheet(img: HTMLImageElement, targetH: number, dpr: number): SpriteSheet {
   const clean = removeCheckerBackground(img)
   const cellW = clean.width / SOURCE_COLS
@@ -268,7 +263,7 @@ function prepareSpriteSheet(img: HTMLImageElement, targetH: number, dpr: number)
         for (let x = 0; x < cellW; x++) {
           const px = ox + x
           const py = oy + y
-          if (channel(d, (py * clean.width + px) * 4 + 3) > 8) {
+          if ((d[(py * clean.width + px) * 4 + 3] ?? 0) > 8) {
             if (x < minX) minX = x
             if (x > maxX) maxX = x
             if (y < minY) minY = y
@@ -299,7 +294,79 @@ function prepareSpriteSheet(img: HTMLImageElement, targetH: number, dpr: number)
     })
   }
 
+  buildSideRows(out, ctx, frameW, frameH)
   return { canvas: out, frameW, frameH }
+}
+
+// Hai hàng đi ngang được dựng lại từ MỘT tư thế gốc duy nhất:
+// - Nửa thân trên (đầu/mặt/thân) lấy cố định từ frame 0 hàng "right" -> hướng
+//   nhìn không bao giờ đổi theo frameIndex (hết hiện tượng lật/ping-pong).
+// - Nửa dưới (chân + tà áo) mới thay theo frameIndex, kèm nhún nhẹ.
+// - Hàng "left" là ảnh phản chiếu ngang cố định của hàng "right".
+const LEG_BOB = [0, -1, 0, 1]
+
+function buildSideRows(
+  out: HTMLCanvasElement,
+  ctx: CanvasRenderingContext2D,
+  frameW: number,
+  frameH: number,
+) {
+  const rowRight = PLAYER_DIR_ROW.right
+  const rowLeft = PLAYER_DIR_ROW.left
+  const cut = Math.round(frameH * 0.55)
+
+  // Bản sao hàng "right" gốc để đọc trong lúc vẽ lại.
+  const src = document.createElement("canvas")
+  src.width = frameW * PLAYER_FRAMES
+  src.height = frameH
+  const sctx = src.getContext("2d")!
+  sctx.imageSmoothingEnabled = true
+  sctx.imageSmoothingQuality = "high"
+  sctx.drawImage(out, 0, rowRight * frameH, src.width, frameH, 0, 0, src.width, frameH)
+
+  for (let f = 0; f < PLAYER_FRAMES; f++) {
+    const dx = f * frameW
+    ctx.clearRect(dx, rowRight * frameH, frameW, frameH)
+    // thân trên cố định
+    ctx.drawImage(src, 0, 0, frameW, cut, dx, rowRight * frameH, frameW, cut)
+    // chân + tà áo theo frame
+    const bob = LEG_BOB[f] ?? 0
+    ctx.drawImage(
+      src,
+      dx,
+      cut,
+      frameW,
+      frameH - cut,
+      dx,
+      rowRight * frameH + cut + bob,
+      frameW,
+      frameH - cut,
+    )
+  }
+
+  // snapshot hàng đã rebuild (có nhịp bước chân) — art gốc quay mặt sang trái
+  const rebuilt = document.createElement("canvas")
+  rebuilt.width = frameW * PLAYER_FRAMES
+  rebuilt.height = frameH
+  rebuilt.getContext("2d")!.drawImage(out, 0, rowRight * frameH, rebuilt.width, frameH, 0, 0, rebuilt.width, frameH)
+
+  // hàng trái giữ nguyên hướng nhìn trái của art gốc
+  for (let f = 0; f < PLAYER_FRAMES; f++) {
+    const dx = f * frameW
+    ctx.clearRect(dx, rowLeft * frameH, frameW, frameH)
+    ctx.drawImage(rebuilt, dx, 0, frameW, frameH, dx, rowLeft * frameH, frameW, frameH)
+  }
+
+  // hàng phải = lật gương từ art gốc để mặt nhìn phải
+  for (let f = 0; f < PLAYER_FRAMES; f++) {
+    const dx = f * frameW
+    ctx.clearRect(dx, rowRight * frameH, frameW, frameH)
+    ctx.save()
+    ctx.translate(dx + frameW, rowRight * frameH)
+    ctx.scale(-1, 1)
+    ctx.drawImage(rebuilt, dx, 0, frameW, frameH, 0, 0, frameW, frameH)
+    ctx.restore()
+  }
 }
 
 export const SPRITE_HEIGHTS = {
