@@ -30,7 +30,7 @@ const PLAYER_SPEED = 190
 const GROUND_TILE = 288
 
 type Vec = { x: number; y: number }
-type Interactive = { id: number; x: number; y: number; type: "stone"; active: boolean; respawnAt: number }
+type Interactive = { id: number; x: number; y: number; type: "stone" | "scroll"; active: boolean; respawnAt: number }
 type QuizSource = "stone" | "manual"
 type QuizState = { q: Question; objId: number | null; source: QuizSource }
 type Tree = { x: number; y: number; scale: number }
@@ -189,6 +189,17 @@ export default function CultivationGame() {
             x: nearSpawn ? WORLD / 2 + rand(-200, 200) : rand(160, WORLD - 160),
             y: nearSpawn ? WORLD / 2 + rand(80, 220) : rand(160, WORLD - 160),
             type: "stone",
+            active: true,
+            respawnAt: 0,
+          })
+        }
+        // Bí Kíp (cuộn kinh phát sáng) rải trên bản đồ — chạm vào để luyện công
+        for (let i = 0; i < 3; i++) {
+          objects.push({
+            id: 100 + i,
+            x: i === 0 ? WORLD / 2 + rand(-260, 260) : rand(160, WORLD - 160),
+            y: i === 0 ? WORLD / 2 + rand(100, 240) : rand(160, WORLD - 160),
+            type: "scroll",
             active: true,
             respawnAt: 0,
           })
