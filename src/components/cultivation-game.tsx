@@ -429,7 +429,7 @@ export default function CultivationGame() {
         x > camX - pad && x < camX + w + pad && y > camY - pad && y < camY + h + pad
 
       // --- VẼ ---
-      const theme = REALM_THEMES[envGroupRef.current]
+      const theme = REALM_THEMES[envGroupRef.current] ?? REALM_THEMES[0]!
       const g = envGroupRef.current
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
       ctx.clearRect(0, 0, w, h)
@@ -720,7 +720,8 @@ export default function CultivationGame() {
           ctx.shadowColor = "rgba(160, 190, 255, 0.9)"
           ctx.shadowBlur = 14
           ctx.beginPath()
-          ctx.moveTo(bolt.pts[0].x, bolt.pts[0].y)
+          const first = bolt.pts[0]!
+          ctx.moveTo(first.x, first.y)
           for (const p of bolt.pts.slice(1)) ctx.lineTo(p.x, p.y)
           ctx.stroke()
           ctx.restore()
