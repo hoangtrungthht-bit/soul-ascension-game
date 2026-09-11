@@ -251,7 +251,7 @@ export default function CultivationGame() {
           window.setTimeout(() => setEnvToast(null), 2400)
         }, 1000)
       }
-    } else {
+    } else if (!silent) {
       setToast(`+${amount} Tu Vi`)
       window.setTimeout(() => setToast(null), 1400)
     }
