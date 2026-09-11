@@ -231,7 +231,7 @@ export default function CultivationGame() {
     o.active = true
   }, [])
 
-  const grantTuVi = useCallback((amount: number) => {
+  const grantTuVi = useCallback((amount: number, silent = false) => {
     const prevIdx = getRealmIndex(tuViRef.current)
     const next = tuViRef.current + amount
     const nextIdx = getRealmIndex(next)
