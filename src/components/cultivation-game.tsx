@@ -29,6 +29,12 @@ const PLAYER_SPEED = 190
 // Kích cỡ 1 ô tilemap đá cổ trong toạ độ thế giới
 const GROUND_TILE = 288
 
+// Cơ chế đánh cược Bí Kíp
+const BET_RATE = 0.2 // cược = 20% Linh Thạch hiện có
+const BET_WIN_MULT = 3 // đúng khi cược: Tu Vi x3
+const BET_LOSS_RATE = 0.3 // sai khi cược: mất 30% Tu Vi lẽ ra nhận được
+const QUIZ_TOPIC = "Kiến thức phổ thông (Khoa học – Toán học – Địa lý)"
+
 type Vec = { x: number; y: number }
 type Interactive = { id: number; x: number; y: number; type: "stone" | "scroll"; active: boolean; respawnAt: number }
 type QuizSource = "stone" | "manual"
