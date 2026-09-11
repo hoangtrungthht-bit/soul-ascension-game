@@ -29,10 +29,17 @@ const PLAYER_SPEED = 190
 // Kích cỡ 1 ô tilemap đá cổ trong toạ độ thế giới
 const GROUND_TILE = 288
 
+// Cơ chế đánh cược Bí Kíp
+const BET_RATE = 0.2 // cược = 20% Linh Thạch hiện có
+const BET_WIN_MULT = 3 // đúng khi cược: Tu Vi x3
+const BET_LOSS_RATE = 0.3 // sai khi cược: mất 30% Tu Vi lẽ ra nhận được
+const QUIZ_TOPIC = "Kiến thức phổ thông (Khoa học – Toán học – Địa lý)"
+
 type Vec = { x: number; y: number }
 type Interactive = { id: number; x: number; y: number; type: "stone" | "scroll"; active: boolean; respawnAt: number }
 type QuizSource = "stone" | "manual"
-type QuizState = { q: Question; objId: number | null; source: QuizSource }
+type QuizState = { q: Question; objId: number | null; source: QuizSource; bet: boolean; stake: number }
+type WagerState = { q: Question; objId: number | null; stake: number }
 type Tree = { x: number; y: number; scale: number }
 type Herb = { x: number; y: number; phase: number; h: number }
 type Mote = { x: number; y: number; r: number; speed: number; phase: number }
@@ -266,12 +273,38 @@ export default function CultivationGame() {
     return () => window.clearInterval(id)
   }, [ready, quiz, grantTuVi])
 
-  const openQuiz = useCallback((source: QuizSource, objId: number | null) => {
+  const openQuiz = useCallback(
+    (source: QuizSource, objId: number | null, bet = false, stake = 0) => {
+      pausedRef.current = true
+      setPicked(null)
+      const q = randomQuestion(lastQuestionRef.current)
+      lastQuestionRef.current = q
+      setQuiz({ q, objId, source, bet, stake })
+    },
+    [],
+  )
+
+  // Mở bảng điều khoản cược trước khi vào câu hỏi Bí Kíp
+  const openWager = useCallback((objId: number | null) => {
     pausedRef.current = true
-    setPicked(null)
     const q = randomQuestion(lastQuestionRef.current)
     lastQuestionRef.current = q
-    setQuiz({ q, objId, source })
+    setWager({ q, objId, stake: Math.floor(linhThachRef.current * BET_RATE) })
+  }, [])
+
+  const startFromWager = useCallback((bet: boolean) => {
+    setWager((w) => {
+      if (w) {
+        setPicked(null)
+        setQuiz({ q: w.q, objId: w.objId, source: "manual", bet, stake: bet ? w.stake : 0 })
+      }
+      return null
+    })
+  }, [])
+
+  const closeWager = useCallback(() => {
+    setWager(null)
+    pausedRef.current = false
   }, [])
 
   const closeQuiz = useCallback(() => {
@@ -287,6 +320,8 @@ export default function CultivationGame() {
       const correct = idx === quiz.q.answer
       const obj = quiz.objId != null ? objectsRef.current.find((o) => o.id === quiz.objId) : undefined
       const source = quiz.source
+      const bet = quiz.bet
+      const stake = quiz.stake
 
       window.setTimeout(() => {
         if (source === "stone") {
@@ -303,11 +338,22 @@ export default function CultivationGame() {
             window.setTimeout(() => setToast(null), 1600)
           }
         } else if (correct) {
-          grantTuVi(TU_VI_REWARD)
+          const gain = bet ? TU_VI_REWARD * BET_WIN_MULT : TU_VI_REWARD
+          grantTuVi(gain)
+          if (bet) {
+            setToast(`Cược thắng! +${gain} Tu Vi (giữ nguyên ${stake} Linh Thạch)`)
+            window.setTimeout(() => setToast(null), 1800)
+          }
           if (obj) {
             obj.active = false
             obj.respawnAt = performance.now() + STONE_RESPAWN_MS
           }
+        } else if (bet) {
+          const penalty = Math.round(TU_VI_REWARD * BET_LOSS_RATE)
+          setLinhThach((n) => Math.max(0, n - stake))
+          grantTuVi(-penalty, true)
+          setToast(`Cược thua! −${stake} Linh Thạch, −${penalty} Tu Vi`)
+          window.setTimeout(() => setToast(null), 1800)
         } else {
           setToast("Trả lời sai — Tâm ma quấy nhiễu!")
           window.setTimeout(() => setToast(null), 1500)
