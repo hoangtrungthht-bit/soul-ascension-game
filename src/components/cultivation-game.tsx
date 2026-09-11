@@ -859,6 +859,7 @@ export default function CultivationGame() {
           <span className="text-xs text-jade-soft">
             Tu Vi: {tuVi}/{tuViCap}
           </span>
+          <span className="text-xs text-jade-soft/80">+1 linh khí/giây ✨</span>
           <span className="text-xs text-gold/90">Linh Thạch: {linhThach} 💎</span>
         </div>
 
