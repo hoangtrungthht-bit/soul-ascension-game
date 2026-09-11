@@ -263,7 +263,7 @@ function prepareSpriteSheet(img: HTMLImageElement, targetH: number, dpr: number)
         for (let x = 0; x < cellW; x++) {
           const px = ox + x
           const py = oy + y
-          if (d[(py * clean.width + px) * 4 + 3] > 8) {
+          if ((d[(py * clean.width + px) * 4 + 3] ?? 0) > 8) {
             if (x < minX) minX = x
             if (x > maxX) maxX = x
             if (y < minY) minY = y
