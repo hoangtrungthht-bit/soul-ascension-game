@@ -261,7 +261,7 @@ export default function CultivationGame() {
   useEffect(() => {
     if (!ready || quiz) return
     const id = window.setInterval(() => {
-      grantTuVi(1)
+      grantTuVi(1, true)
     }, 1000)
     return () => window.clearInterval(id)
   }, [ready, quiz, grantTuVi])
