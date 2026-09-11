@@ -237,10 +237,10 @@ export default function CultivationGame() {
     const nextIdx = getRealmIndex(next)
     setTuVi(next)
     if (nextIdx > prevIdx) {
-      setBreakthrough(REALMS[nextIdx].name)
+      setBreakthrough(REALMS[nextIdx]?.name ?? "")
       window.setTimeout(() => setBreakthrough(null), 2600)
-      const prevGroup = REALMS[prevIdx].group
-      const nextGroup = REALMS[nextIdx].group
+      const prevGroup = REALMS[prevIdx]?.group ?? 0
+      const nextGroup = REALMS[nextIdx]?.group ?? 0
       if (nextGroup > prevGroup) {
         setEnvFade("out")
         window.setTimeout(() => {
