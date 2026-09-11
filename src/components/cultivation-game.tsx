@@ -231,7 +231,7 @@ export default function CultivationGame() {
     o.active = true
   }, [])
 
-  const grantTuVi = useCallback((amount: number) => {
+  const grantTuVi = useCallback((amount: number, silent = false) => {
     const prevIdx = getRealmIndex(tuViRef.current)
     const next = tuViRef.current + amount
     const nextIdx = getRealmIndex(next)
@@ -251,11 +251,20 @@ export default function CultivationGame() {
           window.setTimeout(() => setEnvToast(null), 2400)
         }, 1000)
       }
-    } else {
+    } else if (!silent) {
       setToast(`+${amount} Tu Vi`)
       window.setTimeout(() => setToast(null), 1400)
     }
   }, [])
+
+  // Tu Vi tự tăng dần theo thời gian: +1 linh khí mỗi giây (tạm dừng khi đang trả lời câu hỏi)
+  useEffect(() => {
+    if (!ready || quiz) return
+    const id = window.setInterval(() => {
+      grantTuVi(1, true)
+    }, 1000)
+    return () => window.clearInterval(id)
+  }, [ready, quiz, grantTuVi])
 
   const openQuiz = useCallback((source: QuizSource, objId: number | null) => {
     pausedRef.current = true
@@ -850,6 +859,7 @@ export default function CultivationGame() {
           <span className="text-xs text-jade-soft">
             Tu Vi: {tuVi}/{tuViCap}
           </span>
+          <span className="text-xs text-jade-soft/80">+1 linh khí/giây ✨</span>
           <span className="text-xs text-gold/90">Linh Thạch: {linhThach} 💎</span>
         </div>
 
