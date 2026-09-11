@@ -257,6 +257,15 @@ export default function CultivationGame() {
     }
   }, [])
 
+  // Tu Vi tự tăng dần theo thời gian: +1 linh khí mỗi giây (tạm dừng khi đang trả lời câu hỏi)
+  useEffect(() => {
+    if (!ready || quiz) return
+    const id = window.setInterval(() => {
+      grantTuVi(1)
+    }, 1000)
+    return () => window.clearInterval(id)
+  }, [ready, quiz, grantTuVi])
+
   const openQuiz = useCallback((source: QuizSource, objId: number | null) => {
     pausedRef.current = true
     setPicked(null)
