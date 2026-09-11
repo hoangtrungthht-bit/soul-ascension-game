@@ -737,7 +737,8 @@ export default function CultivationGame() {
           ctx.shadowColor = "rgba(160, 190, 255, 0.9)"
           ctx.shadowBlur = 14
           ctx.beginPath()
-          ctx.moveTo(bolt.pts[0].x, bolt.pts[0].y)
+          const first = bolt.pts[0]
+          if (first) ctx.moveTo(first.x, first.y)
           for (const p of bolt.pts.slice(1)) ctx.lineTo(p.x, p.y)
           ctx.stroke()
           ctx.restore()
