@@ -111,7 +111,7 @@ export default function CultivationGame() {
     const v = Number(new URLSearchParams(window.location.search).get("tuvi") || 0)
     if (Number.isFinite(v) && v > 0) {
       setTuVi(v)
-      envGroupRef.current = REALMS[getRealmIndex(v)].group
+      envGroupRef.current = REALMS[getRealmIndex(v)]?.group ?? 0
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -445,7 +445,7 @@ export default function CultivationGame() {
         x > camX - pad && x < camX + w + pad && y > camY - pad && y < camY + h + pad
 
       // --- VẼ ---
-      const theme = REALM_THEMES[envGroupRef.current]
+      const theme = REALM_THEMES[envGroupRef.current] ?? REALM_THEMES[0]!
       const g = envGroupRef.current
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
       ctx.clearRect(0, 0, w, h)
@@ -802,7 +802,7 @@ export default function CultivationGame() {
   )
 
   const realmIdx = getRealmIndex(tuVi)
-  const realm = REALMS[realmIdx]
+  const realm = REALMS[realmIdx] ?? REALMS[0]!
   const nextRealm = REALMS[realmIdx + 1]
   const tuViCap = getTuViCap(tuVi)
   const progress = nextRealm

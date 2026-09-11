@@ -70,7 +70,7 @@ function chromaKeyMagenta(img: HTMLImageElement): HTMLCanvasElement {
 
   const bgScore = (p: number) => {
     const i = p * 4
-    return magentaness(d[i], d[i + 1], d[i + 2])
+    return magentaness(d[i] ?? 0, d[i + 1] ?? 0, d[i + 2] ?? 0)
   }
 
   const visit = (x: number, y: number) => {
@@ -82,7 +82,7 @@ function chromaKeyMagenta(img: HTMLImageElement): HTMLCanvasElement {
     if (s > 30) {
       // Vùng nền hoặc quầng chuyển tiếp: alpha giảm dần theo độ magenta
       const alpha = s > 100 ? 0 : Math.round(255 * (1 - (s - 30) / 70))
-      d[p * 4 + 3] = Math.min(d[p * 4 + 3], alpha)
+      d[p * 4 + 3] = Math.min(d[p * 4 + 3] ?? 0, alpha)
       if (alpha === 0) stack.push(p)
     }
   }
@@ -108,11 +108,11 @@ function chromaKeyMagenta(img: HTMLImageElement): HTMLCanvasElement {
   // Khử ánh magenta còn vương trên các pixel viền bán trong suốt
   for (let p = 0; p < w * h; p++) {
     const i = p * 4
-    const a = d[i + 3]
+    const a = d[i + 3] ?? 0
     if (a > 0 && a < 255) {
-      const g = d[i + 1]
-      d[i] = Math.min(d[i], g + 15)
-      d[i + 2] = Math.min(d[i + 2], g + 15)
+      const g = d[i + 1] ?? 0
+      d[i] = Math.min(d[i] ?? 0, g + 15)
+      d[i + 2] = Math.min(d[i + 2] ?? 0, g + 15)
     }
   }
 
@@ -131,7 +131,7 @@ function trimTransparent(src: HTMLCanvasElement): HTMLCanvasElement {
   let maxY = -1
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
-      if (d[(y * w + x) * 4 + 3] > 8) {
+      if ((d[(y * w + x) * 4 + 3] ?? 0) > 8) {
         if (x < minX) minX = x
         if (x > maxX) maxX = x
         if (y < minY) minY = y
@@ -190,7 +190,7 @@ function removeCheckerBackground(img: HTMLImageElement): HTMLCanvasElement {
 
   const isBg = (p: number) => {
     const i = p * 4
-    return isCheckerGrey(d[i], d[i + 1], d[i + 2])
+    return isCheckerGrey(d[i] ?? 0, d[i + 1] ?? 0, d[i + 2] ?? 0)
   }
   const visit = (x: number, y: number) => {
     if (x < 0 || y < 0 || x >= w || y >= h) return
