@@ -117,9 +117,7 @@ export function randomQuestion(exclude?: Question): Question {
     throw new Error("Danh sách câu hỏi trống — hãy thêm câu hỏi vào src/data/questions.ts")
   }
   if (QUESTIONS.length === 1 || !exclude) {
-    const only = QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)]
-    if (!only) throw new Error("Không có câu hỏi trắc nghiệm")
-    return only
+    return QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)]
   }
   let q = QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)]
   let guard = 0
@@ -127,6 +125,5 @@ export function randomQuestion(exclude?: Question): Question {
     q = QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)]
     guard++
   }
-  if (!q) throw new Error("Không có câu hỏi trắc nghiệm")
   return q
 }

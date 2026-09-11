@@ -1,5 +1,5 @@
-// Theme môi trường & vật phẩm tự tiến hóa theo nhóm Cảnh Giới (realmIndex 0-9).
-// Nhóm 0: realm 1-3 | Nhóm 1: realm 4-6 | Nhóm 2: realm 7-9 | Nhóm 3: realm 10
+// Theme môi trường & vật phẩm tự tiến hóa theo 9 Cảnh Giới (index 0–8).
+// Nhóm 0: Luyện Khí–Kim Đan | Nhóm 1: Nguyên Anh–Luyện Hư | Nhóm 2: Hợp Thể–Đại Thừa | Nhóm 3: Độ Kiếp
 export type RealmTheme = {
   name: string
   // lớp phủ màu lên tilemap nền
@@ -29,7 +29,7 @@ export type RealmTheme = {
 
 export const REALM_THEMES: RealmTheme[] = [
   {
-    // Nhóm 1: Luyện Khí / Trúc Cơ / Kim Đan — sàn đá cổ rêu, Linh Thụ xanh
+    // Nhóm 0: Luyện Khí / Trúc Cơ / Kim Đan — sàn đá cổ rêu, Linh Thụ xanh
     name: "Linh Cảnh Sơ Khai",
     groundTint: "rgba(30, 70, 50, 0.10)",
     treeTint: null,
@@ -52,7 +52,7 @@ export const REALM_THEMES: RealmTheme[] = [
     bookLabel: "Bí Kíp",
   },
   {
-    // Nhóm 2: Nguyên Anh / Hóa Thần / Luyện Hư — Tiên Sơn mây mờ, bạch ngọc
+    // Nhóm 1: Nguyên Anh / Hóa Thần / Luyện Hư — Tiên Sơn mây mờ, bạch ngọc
     name: "Tiên Sơn Vân Hải",
     groundTint: "rgba(226, 236, 250, 0.55)",
     treeTint: "rgba(226, 132, 32, 0.72)",
@@ -75,7 +75,7 @@ export const REALM_THEMES: RealmTheme[] = [
     bookLabel: "Lụa Thư",
   },
   {
-    // Nhóm 3: Hợp Thể / Đại Thừa / Độ Kiếp — Thái Cổ Thần Điện, cẩm thạch
+    // Nhóm 2: Hợp Thể / Đại Thừa — Thái Cổ Thần Điện, cẩm thạch
     name: "Thái Cổ Thần Điện",
     groundTint: "rgba(48, 30, 96, 0.66)",
     treeTint: "rgba(130, 190, 250, 0.70)",
@@ -98,7 +98,7 @@ export const REALM_THEMES: RealmTheme[] = [
     bookLabel: "Ngọc Giản",
   },
   {
-    // Nhóm 4: Chân Tiên — Cửu Thiên Tiên Giới, hồ ngọc phản mây
+    // Nhóm 3: Độ Kiếp — Cửu Thiên Tiên Giới, hồ ngọc phản mây
     name: "Cửu Thiên Tiên Giới",
     groundTint: "rgba(120, 195, 255, 0.72)",
     treeTint: "rgba(255, 150, 205, 0.78)",
@@ -123,10 +123,10 @@ export const REALM_THEMES: RealmTheme[] = [
 ]
 
 export function getRealmGroup(realmIdx: number): number {
-  // Đồng bộ với `REALMS[].group` trong cultivation-data
-  if (realmIdx >= 14) return 3
-  if (realmIdx >= 10) return 2
-  if (realmIdx >= 5) return 1
+  // Đồng bộ với `REALMS[].group` (9 cảnh giới, index 0–8)
+  if (realmIdx >= 8) return 3
+  if (realmIdx >= 6) return 2
+  if (realmIdx >= 3) return 1
   return 0
 }
 

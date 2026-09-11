@@ -3,7 +3,7 @@ import CultivationGame from "@/components/cultivation-game";
 
 const title = "Soul Ascension — Tu Tiên Chi Lộ";
 const description =
-  "Hành trình tu luyện 2D: di chuyển, khai mở trắc nghiệm, tích lũy Tu Vi và đột phá 10 Cảnh Giới.";
+  "Hành trình tu luyện 2D: di chuyển, khai mở trắc nghiệm, tích lũy Tu Vi và đột phá 9 Cảnh Giới.";
 
 export const Route = createFileRoute("/")({
   head: () => ({

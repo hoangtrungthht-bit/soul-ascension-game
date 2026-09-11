@@ -80,7 +80,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "Soul Ascension — Tu Tiên Chi Lộ" },
       {
         name: "description",
-        content: "Hành trình tu luyện 2D pixel: tích lũy Tu Vi và đột phá 10 Cảnh Giới.",
+        content: "Hành trình tu luyện 2D pixel: tích lũy Tu Vi và đột phá 9 Cảnh Giới.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

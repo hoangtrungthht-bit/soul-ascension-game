@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
-import { BookOpen, X } from "lucide-react"
+import { X } from "lucide-react"
 import {
   loadPixelAssets,
   PLAYER_DIR_ROW,
@@ -111,7 +111,7 @@ export default function CultivationGame() {
     const v = Number(new URLSearchParams(window.location.search).get("tuvi") || 0)
     if (Number.isFinite(v) && v > 0) {
       setTuVi(v)
-      envGroupRef.current = REALMS[getRealmIndex(v)]?.group ?? 0
+      envGroupRef.current = REALMS[getRealmIndex(v)].group
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -193,12 +193,13 @@ export default function CultivationGame() {
             respawnAt: 0,
           })
         }
-        // Bí Kíp (cuộn kinh phát sáng) rải trên bản đồ — chạm vào để luyện công
+        // Bí Kíp (cuộn sách) — tọa độ ngẫu nhiên, 1 cuốn gần điểm hồi sinh
         for (let i = 0; i < 3; i++) {
+          const nearSpawn = i === 0
           objects.push({
-            id: 100 + i,
-            x: i === 0 ? WORLD / 2 + rand(-260, 260) : rand(160, WORLD - 160),
-            y: i === 0 ? WORLD / 2 + rand(100, 240) : rand(160, WORLD - 160),
+            id: 12 + i,
+            x: nearSpawn ? WORLD / 2 + rand(-160, 160) : rand(160, WORLD - 160),
+            y: nearSpawn ? WORLD / 2 + rand(-220, -80) : rand(160, WORLD - 160),
             type: "scroll",
             active: true,
             respawnAt: 0,
@@ -236,12 +237,10 @@ export default function CultivationGame() {
     const nextIdx = getRealmIndex(next)
     setTuVi(next)
     if (nextIdx > prevIdx) {
-      const nextRealm = REALMS[nextIdx]
-      if (!nextRealm) return
-      setBreakthrough(nextRealm.name)
+      setBreakthrough(REALMS[nextIdx].name)
       window.setTimeout(() => setBreakthrough(null), 2600)
-      const prevGroup = REALMS[prevIdx]?.group ?? 0
-      const nextGroup = nextRealm.group
+      const prevGroup = REALMS[prevIdx].group
+      const nextGroup = REALMS[nextIdx].group
       if (nextGroup > prevGroup) {
         setEnvFade("out")
         window.setTimeout(() => {
@@ -296,6 +295,10 @@ export default function CultivationGame() {
           }
         } else if (correct) {
           grantTuVi(TU_VI_REWARD)
+          if (obj) {
+            obj.active = false
+            obj.respawnAt = performance.now() + STONE_RESPAWN_MS
+          }
         } else {
           setToast("Trả lời sai — Tâm ma quấy nhiễu!")
           window.setTimeout(() => setToast(null), 1500)
@@ -410,7 +413,7 @@ export default function CultivationGame() {
         player.x = nx
         player.y = ny
 
-        // Hồi sinh Linh Thạch + chạm gần để mở trắc nghiệm
+        // Hồi sinh Linh Thạch / Bí Kíp + chạm gần để mở trắc nghiệm
         let touching: number | null = null
         for (const o of objectsRef.current) {
           if (!o.active) {
@@ -424,7 +427,7 @@ export default function CultivationGame() {
             touching = o.id
             if (nearStoneRef.current !== o.id) {
               nearStoneRef.current = o.id
-              openQuiz("stone", o.id)
+              openQuiz(o.type === "scroll" ? "manual" : "stone", o.id)
             }
             break
           }
@@ -442,7 +445,7 @@ export default function CultivationGame() {
         x > camX - pad && x < camX + w + pad && y > camY - pad && y < camY + h + pad
 
       // --- VẼ ---
-      const theme = REALM_THEMES[envGroupRef.current] ?? REALM_THEMES[0]!
+      const theme = REALM_THEMES[envGroupRef.current]
       const g = envGroupRef.current
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
       ctx.clearRect(0, 0, w, h)
@@ -527,9 +530,10 @@ export default function CultivationGame() {
       for (const o of objectsRef.current) {
         if (!o.active) continue
         if (!inView(o.x, o.y, 80)) continue
-        const baseImg = assets.stone
-        const img = assets.tinted.stone[g] ?? baseImg
-        const dh = SPRITE_HEIGHTS.stone
+        const isScroll = o.type === "scroll"
+        const baseImg = isScroll ? assets.scroll : assets.stone
+        const img = isScroll ? (assets.tinted.scroll[g] ?? baseImg) : (assets.tinted.stone[g] ?? baseImg)
+        const dh = isScroll ? SPRITE_HEIGHTS.scroll : SPRITE_HEIGHTS.stone
         const dw = (img.width / img.height) * dh
         const float = Math.sin(t / 420 + o.id) * 6
         drawables.push({
@@ -618,7 +622,7 @@ export default function CultivationGame() {
             ctx.fillStyle = `rgba(${glowColor}, 0.9)`
             ctx.shadowColor = `rgba(${glowColor}, 0.8)`
             ctx.shadowBlur = 6
-            ctx.fillText(theme.stoneLabel, o.x, o.y - dh * 0.62 + float)
+            ctx.fillText(isScroll ? "Bí Kíp" : theme.stoneLabel, o.x, o.y - dh * 0.62 + float)
             ctx.restore()
           },
         })
@@ -733,8 +737,7 @@ export default function CultivationGame() {
           ctx.shadowColor = "rgba(160, 190, 255, 0.9)"
           ctx.shadowBlur = 14
           ctx.beginPath()
-          const first = bolt.pts[0]!
-          ctx.moveTo(first.x, first.y)
+          ctx.moveTo(bolt.pts[0].x, bolt.pts[0].y)
           for (const p of bolt.pts.slice(1)) ctx.lineTo(p.x, p.y)
           ctx.stroke()
           ctx.restore()
@@ -790,7 +793,7 @@ export default function CultivationGame() {
         if (!o.active) continue
         if (Math.hypot(worldX - o.x, worldY - o.y) < 42) {
           nearStoneRef.current = o.id
-          openQuiz("stone", o.id)
+          openQuiz(o.type === "scroll" ? "manual" : "stone", o.id)
           return
         }
       }
@@ -799,7 +802,7 @@ export default function CultivationGame() {
   )
 
   const realmIdx = getRealmIndex(tuVi)
-  const realm = REALMS[realmIdx] ?? REALMS[0]!
+  const realm = REALMS[realmIdx]
   const nextRealm = REALMS[realmIdx + 1]
   const tuViCap = getTuViCap(tuVi)
   const progress = nextRealm
@@ -865,20 +868,6 @@ export default function CultivationGame() {
         </div>
       </div>
 
-      {/* Nút Bí Kíp luyện công */}
-      {ready && !quiz && (
-        <button
-          type="button"
-          onClick={() => openQuiz("manual", null)}
-          className="absolute left-4 top-28 z-20 flex flex-col items-center gap-1 rounded-2xl border border-gold/40 bg-ink/80 px-3 py-2 text-gold shadow-[0_0_18px_rgba(231,200,106,0.25)] backdrop-blur-sm transition hover:border-gold hover:bg-ink"
-          title="Bí Kíp — Luyện Công"
-          aria-label="Mở Bí Kíp luyện công"
-        >
-          <BookOpen className="h-7 w-7" />
-          <span className="font-serif text-[11px] tracking-wide">Bí Kíp</span>
-        </button>
-      )}
-
       {/* Bảng thang cảnh giới */}
       <div className="pointer-events-none absolute right-4 top-24 hidden max-h-[70vh] flex-col gap-0.5 overflow-y-auto rounded-xl border border-gold/20 bg-ink/60 p-3 backdrop-blur-sm sm:flex">
         {REALMS.map((r, i) => (
@@ -897,7 +886,7 @@ export default function CultivationGame() {
       {/* Gợi ý */}
       {!quiz && (
         <p className="pointer-events-none absolute bottom-6 right-6 max-w-[220px] text-right text-xs leading-relaxed text-jade-soft/60">
-          Chạm Linh Thạch trên map để thu thập. Mở Bí Kíp để luyện công (+20 Tu Vi).
+          Chọn Linh Thạch trên map để thu thập, Chạm Bí Kíp trên map để luyện công (+20 Tu Vi).
         </p>
       )}
 
