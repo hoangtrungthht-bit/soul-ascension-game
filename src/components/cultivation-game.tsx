@@ -812,7 +812,7 @@ export default function CultivationGame() {
 
     rafRef.current = requestAnimationFrame(loop)
     return () => cancelAnimationFrame(rafRef.current)
-  }, [ready, openQuiz, relocate])
+  }, [ready, openQuiz, openWager, relocate])
 
   // --- Joystick pointer handlers ---
   const joyBaseRef = useRef<HTMLDivElement>(null)
