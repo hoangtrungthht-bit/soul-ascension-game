@@ -100,6 +100,7 @@ export default function CultivationGame() {
   const [tuVi, setTuVi] = useState(0)
   const [linhThach, setLinhThach] = useState(0)
   const [quiz, setQuiz] = useState<QuizState | null>(null)
+  const [wager, setWager] = useState<WagerState | null>(null)
   const [picked, setPicked] = useState<number | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const [breakthrough, setBreakthrough] = useState<string | null>(null)
