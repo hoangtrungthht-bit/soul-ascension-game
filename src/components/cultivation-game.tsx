@@ -1006,6 +1006,67 @@ export default function CultivationGame() {
       )}
 
       {/* Modal trắc nghiệm: Linh Thạch hoặc Bí Kíp */}
+      {/* Điều khoản đánh cược Bí Kíp */}
+      {wager && (
+        <div className="absolute inset-0 z-30 flex items-center justify-center bg-ink/70 p-4 backdrop-blur-sm">
+          <div className="relative w-full max-w-lg rounded-2xl border border-amber-400/40 bg-gradient-to-b from-amber-950/95 to-ink/95 p-6 shadow-2xl">
+            <button
+              type="button"
+              onClick={closeWager}
+              className="absolute right-3 top-3 rounded-full p-1 text-jade-soft/60 hover:bg-ink/50 hover:text-gold"
+              aria-label="Đóng Bí Kíp"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            <p className="mb-1 font-serif text-xs uppercase tracking-[0.25em] text-jade-soft/70">Khế Ước Đánh Cược</p>
+            <h2 className="mb-4 font-serif text-xl text-gold">Bí Kíp Luyện Công</h2>
+            <ul className="flex flex-col gap-2 text-sm text-jade-soft/85">
+              <li>
+                Chủ đề câu hỏi: <span className="text-gold">{QUIZ_TOPIC}</span>
+              </li>
+              <li>
+                Trả lời đúng (không cược): <span className="text-gold">+{TU_VI_REWARD} Tu Vi</span>
+              </li>
+              <li>
+                Linh Thạch cần cược (20% hiện có):{" "}
+                <span className="text-gold">
+                  {wager.stake} 💎 / {linhThach} 💎
+                </span>
+              </li>
+              <li>
+                Nếu cược & trả lời đúng:{" "}
+                <span className="text-jade-soft">
+                  +{TU_VI_REWARD * BET_WIN_MULT} Tu Vi (x{BET_WIN_MULT}), giữ nguyên Linh Thạch
+                </span>
+              </li>
+              <li>
+                Nếu cược & trả lời sai:{" "}
+                <span className="text-destructive">
+                  −{wager.stake} Linh Thạch và −{Math.round(TU_VI_REWARD * BET_LOSS_RATE)} Tu Vi
+                </span>
+              </li>
+            </ul>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+              <button
+                type="button"
+                onClick={() => startFromWager(true)}
+                disabled={wager.stake < 1}
+                className="flex-1 rounded-xl border border-gold/60 bg-gold/15 px-4 py-3 font-serif text-sm text-gold transition-colors hover:bg-gold/25 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                {wager.stake < 1 ? "Không đủ Linh Thạch để cược" : `Đồng ý cược ${wager.stake} 💎`}
+              </button>
+              <button
+                type="button"
+                onClick={() => startFromWager(false)}
+                className="flex-1 rounded-xl border border-jade/30 bg-ink/60 px-4 py-3 font-serif text-sm text-jade-soft transition-colors hover:border-gold/50"
+              >
+                Không cược (+{TU_VI_REWARD} Tu Vi)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {quiz && (
         <div className="absolute inset-0 z-30 flex items-center justify-center bg-ink/70 p-4 backdrop-blur-sm">
           <div
