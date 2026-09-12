@@ -271,7 +271,7 @@ export default function CultivationGame() {
 
   // Tu Vi tự tăng dần theo thời gian: +1 linh khí mỗi giây (tạm dừng khi đang trả lời câu hỏi)
   useEffect(() => {
-    if (!ready || quiz) return
+    if (!ready || quiz || wager) return
     const id = window.setInterval(() => {
       grantTuVi(1, true)
     }, 1000)
