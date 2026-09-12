@@ -276,7 +276,7 @@ export default function CultivationGame() {
       grantTuVi(1, true)
     }, 1000)
     return () => window.clearInterval(id)
-  }, [ready, quiz, grantTuVi])
+  }, [ready, quiz, wager, grantTuVi])
 
   const openQuiz = useCallback(
     (source: QuizSource, objId: number | null, bet = false, stake = 0) => {
