@@ -487,7 +487,8 @@ export default function CultivationGame() {
             touching = o.id
             if (nearStoneRef.current !== o.id) {
               nearStoneRef.current = o.id
-              openQuiz(o.type === "scroll" ? "manual" : "stone", o.id)
+              if (o.type === "scroll") openWager(o.id)
+              else openQuiz("stone", o.id)
             }
             break
           }
