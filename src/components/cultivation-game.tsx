@@ -1115,7 +1115,9 @@ export default function CultivationGame() {
             </div>
             <p className="mt-4 text-center text-xs text-jade-soft/50">
               {isManual
-                ? `Trả lời đúng: +${TU_VI_REWARD} Tu Vi`
+                ? quiz.bet
+                  ? `Đang cược ${quiz.stake} 💎 — Đúng: +${TU_VI_REWARD * BET_WIN_MULT} Tu Vi · Sai: −${quiz.stake} 💎 và −${Math.round(TU_VI_REWARD * BET_LOSS_RATE)} Tu Vi`
+                  : `Không cược — Trả lời đúng: +${TU_VI_REWARD} Tu Vi`
                 : `Trả lời đúng: +${LINH_THACH_REWARD} Linh Thạch 💎`}
             </p>
           </div>
