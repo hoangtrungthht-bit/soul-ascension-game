@@ -1,5 +1,6 @@
-// Theme môi trường & vật phẩm tự tiến hóa theo 9 Cảnh Giới (index 0–8).
-// Nhóm 0: Luyện Khí–Kim Đan | Nhóm 1: Nguyên Anh–Luyện Hư | Nhóm 2: Hợp Thể–Đại Thừa | Nhóm 3: Độ Kiếp
+// Theme môi trường & vật phẩm — MỖI cảnh giới một môi trường riêng biệt (index 0–8 khớp REALMS).
+// 0 Luyện Khí | 1 Trúc Cơ | 2 Kim Đan | 3 Nguyên Anh | 4 Hóa Thần
+// 5 Luyện Hư | 6 Hợp Thể | 7 Đại Thừa | 8 Độ Kiếp
 export type RealmTheme = {
   name: string
   // lớp phủ màu lên tilemap nền
@@ -29,16 +30,16 @@ export type RealmTheme = {
 
 export const REALM_THEMES: RealmTheme[] = [
   {
-    // Nhóm 0: Luyện Khí / Trúc Cơ / Kim Đan — sàn đá cổ rêu, Linh Thụ xanh
-    name: "Linh Cảnh Sơ Khai",
-    groundTint: "rgba(30, 70, 50, 0.10)",
-    treeTint: null,
+    // 0. Luyện Khí — đất xám, khô cằn, tiêu điều
+    name: "Hoang Nguyên Khô Cằn",
+    groundTint: "rgba(118, 110, 96, 0.38)",
+    treeTint: "rgba(148, 138, 118, 0.55)",
     stoneTint: null,
     bookTint: null,
-    stoneGlow: "120, 235, 200",
-    bookGlow: "255, 214, 120",
-    herbColor: "150, 240, 200",
-    moteColor: "200, 255, 230",
+    stoneGlow: "150, 190, 165",
+    bookGlow: "230, 205, 150",
+    herbColor: "150, 155, 120",
+    moteColor: "190, 195, 175",
     stonePulse: false,
     stoneParticles: false,
     stoneRainbow: false,
@@ -52,16 +53,85 @@ export const REALM_THEMES: RealmTheme[] = [
     bookLabel: "Bí Kíp",
   },
   {
-    // Nhóm 1: Nguyên Anh / Hóa Thần / Luyện Hư — Tiên Sơn mây mờ, bạch ngọc
-    name: "Tiên Sơn Vân Hải",
-    groundTint: "rgba(226, 236, 250, 0.55)",
-    treeTint: "rgba(226, 132, 32, 0.72)",
-    stoneTint: "rgba(150, 80, 230, 0.80)",
-    bookTint: "rgba(230, 185, 80, 0.55)",
-    stoneGlow: "186, 120, 255",
-    bookGlow: "255, 205, 110",
-    herbColor: "230, 220, 180",
-    moteColor: "225, 205, 255",
+    // 1. Trúc Cơ — xanh nhạt thô sơ, rừng rậm hoang vu
+    name: "Man Hoang Rừng Rậm",
+    groundTint: "rgba(78, 118, 62, 0.22)",
+    treeTint: "rgba(110, 165, 85, 0.38)",
+    stoneTint: null,
+    bookTint: null,
+    stoneGlow: "140, 220, 150",
+    bookGlow: "245, 215, 130",
+    herbColor: "125, 200, 120",
+    moteColor: "180, 235, 175",
+    stonePulse: false,
+    stoneParticles: false,
+    stoneRainbow: false,
+    bookSwirl: false,
+    bookRainbowAura: false,
+    formationRing: false,
+    mist: false,
+    leaves: "none",
+    lightning: false,
+    stoneLabel: "Linh Thạch Hạ Phẩm",
+    bookLabel: "Bí Kíp",
+  },
+  {
+    // 2. Kim Đan — hổ phách / vàng đất, linh khí loãng bắt đầu xuất hiện
+    name: "Hổ Phách Linh Địa",
+    groundTint: "rgba(196, 152, 70, 0.30)",
+    treeTint: "rgba(196, 155, 62, 0.42)",
+    stoneTint: "rgba(255, 200, 90, 0.35)",
+    bookTint: null,
+    stoneGlow: "255, 205, 105",
+    bookGlow: "255, 215, 120",
+    herbColor: "215, 190, 110",
+    moteColor: "255, 225, 150",
+    stonePulse: false,
+    stoneParticles: false,
+    stoneRainbow: false,
+    bookSwirl: false,
+    bookRainbowAura: false,
+    formationRing: false,
+    mist: false,
+    leaves: "goldred",
+    lightning: false,
+    stoneLabel: "Linh Thạch Trung Phẩm",
+    bookLabel: "Bí Kíp",
+  },
+  {
+    // 3. Nguyên Anh — xanh lá đậm, linh khí tụ hội, cây cối xanh tốt
+    name: "Linh Khí Tụ Hội",
+    groundTint: "rgba(22, 95, 48, 0.32)",
+    treeTint: "rgba(30, 130, 62, 0.40)",
+    stoneTint: "rgba(90, 220, 140, 0.35)",
+    bookTint: null,
+    stoneGlow: "110, 240, 165",
+    bookGlow: "255, 214, 120",
+    herbColor: "120, 235, 150",
+    moteColor: "170, 255, 200",
+    stonePulse: true,
+    stoneParticles: false,
+    stoneRainbow: false,
+    bookSwirl: false,
+    bookRainbowAura: false,
+    formationRing: false,
+    mist: false,
+    leaves: "none",
+    lightning: false,
+    stoneLabel: "Linh Thạch Trung Phẩm",
+    bookLabel: "Lụa Thư",
+  },
+  {
+    // 4. Hóa Thần — xanh ngọc bích, cảnh quan linh sơn
+    name: "Bích Ngọc Linh Sơn",
+    groundTint: "rgba(42, 150, 128, 0.36)",
+    treeTint: "rgba(78, 185, 152, 0.45)",
+    stoneTint: "rgba(110, 230, 200, 0.45)",
+    bookTint: "rgba(200, 230, 190, 0.30)",
+    stoneGlow: "130, 245, 215",
+    bookGlow: "255, 220, 130",
+    herbColor: "150, 240, 200",
+    moteColor: "195, 255, 235",
     stonePulse: true,
     stoneParticles: false,
     stoneRainbow: false,
@@ -69,45 +139,91 @@ export const REALM_THEMES: RealmTheme[] = [
     bookRainbowAura: false,
     formationRing: false,
     mist: true,
-    leaves: "goldred",
+    leaves: "none",
     lightning: false,
-    stoneLabel: "Linh Thạch Trung Phẩm",
+    stoneLabel: "Linh Thạch Thượng Phẩm",
     bookLabel: "Lụa Thư",
   },
   {
-    // Nhóm 2: Hợp Thể / Đại Thừa — Thái Cổ Thần Điện, cẩm thạch
-    name: "Thái Cổ Thần Điện",
-    groundTint: "rgba(48, 30, 96, 0.66)",
-    treeTint: "rgba(130, 190, 250, 0.70)",
-    stoneTint: "rgba(225, 40, 55, 0.80)",
-    bookTint: "rgba(110, 225, 205, 0.60)",
-    stoneGlow: "255, 90, 90",
+    // 5. Luyện Hư — xanh dương sẫm, hư không huyền ảo
+    name: "Hư Không Huyền Ảo",
+    groundTint: "rgba(26, 48, 112, 0.52)",
+    treeTint: "rgba(96, 142, 225, 0.55)",
+    stoneTint: "rgba(125, 165, 255, 0.55)",
+    bookTint: "rgba(150, 180, 255, 0.45)",
+    stoneGlow: "150, 180, 255",
+    bookGlow: "200, 215, 255",
+    herbColor: "150, 175, 240",
+    moteColor: "190, 205, 255",
+    stonePulse: true,
+    stoneParticles: false,
+    stoneRainbow: false,
+    bookSwirl: true,
+    bookRainbowAura: false,
+    formationRing: false,
+    mist: true,
+    leaves: "none",
+    lightning: false,
+    stoneLabel: "Linh Thạch Thượng Phẩm",
+    bookLabel: "Lụa Thư",
+  },
+  {
+    // 6. Hợp Thể — tím huyền bí, mây mù bao phủ, thiên địa giao hòa
+    name: "Tử Vân Thiên Địa",
+    groundTint: "rgba(86, 46, 132, 0.52)",
+    treeTint: "rgba(152, 92, 205, 0.58)",
+    stoneTint: "rgba(185, 95, 255, 0.60)",
+    bookTint: "rgba(215, 165, 255, 0.50)",
+    stoneGlow: "205, 140, 255",
+    bookGlow: "255, 220, 140",
+    herbColor: "195, 155, 245",
+    moteColor: "225, 195, 255",
+    stonePulse: true,
+    stoneParticles: true,
+    stoneRainbow: false,
+    bookSwirl: true,
+    bookRainbowAura: false,
+    formationRing: false,
+    mist: true,
+    leaves: "none",
+    lightning: false,
+    stoneLabel: "Linh Thạch Thượng Phẩm",
+    bookLabel: "Ngọc Giản",
+  },
+  {
+    // 7. Đại Thừa — vàng kim rực rỡ, chất tiên giới
+    name: "Kim Quang Tiên Giới",
+    groundTint: "rgba(205, 162, 58, 0.34)",
+    treeTint: "rgba(232, 192, 82, 0.48)",
+    stoneTint: "rgba(255, 218, 105, 0.55)",
+    bookTint: "rgba(255, 210, 90, 0.55)",
+    stoneGlow: "255, 228, 130",
     bookGlow: "255, 225, 130",
-    herbColor: "180, 200, 255",
-    moteColor: "255, 200, 160",
+    herbColor: "240, 215, 130",
+    moteColor: "255, 235, 170",
     stonePulse: true,
     stoneParticles: true,
     stoneRainbow: false,
     bookSwirl: true,
     bookRainbowAura: true,
-    formationRing: false,
+    formationRing: true,
     mist: false,
-    leaves: "none",
-    lightning: true,
-    stoneLabel: "Linh Thạch Thượng Phẩm",
+    leaves: "petal",
+    lightning: false,
+    stoneLabel: "Tiên Thạch",
     bookLabel: "Ngọc Giản",
   },
   {
-    // Nhóm 3: Độ Kiếp — Cửu Thiên Tiên Giới, hồ ngọc phản mây
-    name: "Cửu Thiên Tiên Giới",
-    groundTint: "rgba(120, 195, 255, 0.72)",
-    treeTint: "rgba(255, 150, 205, 0.78)",
-    stoneTint: "rgba(255, 235, 190, 0.55)",
-    bookTint: "rgba(255, 205, 70, 0.65)",
+    // 8. Độ Kiếp — trắng sáng + lôi điện/sấm sét uy nghiêm
+    name: "Cửu Thiên Lôi Kiếp",
+    groundTint: "rgba(228, 238, 252, 0.50)",
+    treeTint: "rgba(222, 232, 255, 0.50)",
+    stoneTint: "rgba(255, 242, 205, 0.50)",
+    bookTint: "rgba(255, 212, 90, 0.60)",
     stoneGlow: "255, 255, 255",
-    bookGlow: "255, 220, 120",
-    herbColor: "255, 200, 220",
-    moteColor: "255, 240, 250",
+    bookGlow: "255, 225, 130",
+    herbColor: "230, 240, 255",
+    moteColor: "245, 250, 255",
     stonePulse: true,
     stoneParticles: true,
     stoneRainbow: true,
@@ -116,21 +232,18 @@ export const REALM_THEMES: RealmTheme[] = [
     formationRing: true,
     mist: true,
     leaves: "petal",
-    lightning: false,
+    lightning: true,
     stoneLabel: "Tiên Thạch",
     bookLabel: "Tiên Tráp",
   },
 ]
 
 export function getRealmGroup(realmIdx: number): number {
-  // Đồng bộ với `REALMS[].group` (9 cảnh giới, index 0–8)
-  if (realmIdx >= 8) return 3
-  if (realmIdx >= 6) return 2
-  if (realmIdx >= 3) return 1
-  return 0
+  // Mỗi cảnh giới có theme riêng: trả về chính index (clamp 0–8)
+  return Math.max(0, Math.min(realmIdx, REALM_THEMES.length - 1))
 }
 
-// Hệ số nhân Linh Khí thưởng theo nhóm cảnh giới (cấp cao thưởng nhiều hơn)
+// Hệ số nhân Linh Khí thưởng theo cảnh giới (cấp cao thưởng nhiều hơn)
 export function rewardMultiplier(realmIdx: number): number {
-  return 1 + getRealmGroup(realmIdx)
+  return 1 + Math.floor(getRealmGroup(realmIdx) / 2)
 }

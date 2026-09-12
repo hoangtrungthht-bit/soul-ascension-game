@@ -15,16 +15,17 @@ export type Realm = {
  * 9 cảnh giới chính. Cảnh giới đổi tên theo mốc Tu Vi.
  * Tu Vi trên HUD = hiện tại / ngưỡng cảnh giới kế (vd. 0/550).
  */
+// group = index theme môi trường trong REALM_THEMES (mỗi cảnh giới một theme riêng)
 export const REALMS: Realm[] = [
   { name: "Luyện Khí", pinyin: "Qi Refining", threshold: 0, group: 0 },
-  { name: "Trúc Cơ", pinyin: "Foundation", threshold: 550, group: 0 },
-  { name: "Kim Đan", pinyin: "Golden Core", threshold: 1600, group: 0 },
-  { name: "Nguyên Anh", pinyin: "Nascent Soul", threshold: 3400, group: 1 },
-  { name: "Hóa Thần", pinyin: "Spirit Severing", threshold: 5100, group: 1 },
-  { name: "Luyện Hư", pinyin: "Void Refining", threshold: 6100, group: 1 },
-  { name: "Hợp Thể", pinyin: "Body Integration", threshold: 7300, group: 2 },
-  { name: "Đại Thừa", pinyin: "Great Vehicle", threshold: 8700, group: 2 },
-  { name: "Độ Kiếp", pinyin: "Tribulation", threshold: 10300, group: 3 },
+  { name: "Trúc Cơ", pinyin: "Foundation", threshold: 550, group: 1 },
+  { name: "Kim Đan", pinyin: "Golden Core", threshold: 1600, group: 2 },
+  { name: "Nguyên Anh", pinyin: "Nascent Soul", threshold: 3400, group: 3 },
+  { name: "Hóa Thần", pinyin: "Spirit Severing", threshold: 5100, group: 4 },
+  { name: "Luyện Hư", pinyin: "Void Refining", threshold: 6100, group: 5 },
+  { name: "Hợp Thể", pinyin: "Body Integration", threshold: 7300, group: 6 },
+  { name: "Đại Thừa", pinyin: "Great Vehicle", threshold: 8700, group: 7 },
+  { name: "Độ Kiếp", pinyin: "Tribulation", threshold: 10300, group: 8 },
 ]
 
 export const LINH_THACH_REWARD = 10
