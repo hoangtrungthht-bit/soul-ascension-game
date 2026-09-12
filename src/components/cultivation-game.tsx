@@ -845,7 +845,7 @@ export default function CultivationGame() {
 
   const tryClickStone = useCallback(
     (clientX: number, clientY: number) => {
-      if (!ready || quiz || pausedRef.current) return
+      if (!ready || quiz || wager || pausedRef.current) return
       const wrap = wrapRef.current
       if (!wrap) return
       const rect = wrap.getBoundingClientRect()
@@ -855,12 +855,13 @@ export default function CultivationGame() {
         if (!o.active) continue
         if (Math.hypot(worldX - o.x, worldY - o.y) < 42) {
           nearStoneRef.current = o.id
-          openQuiz(o.type === "scroll" ? "manual" : "stone", o.id)
+          if (o.type === "scroll") openWager(o.id)
+          else openQuiz("stone", o.id)
           return
         }
       }
     },
-    [ready, quiz, openQuiz],
+    [ready, quiz, wager, openQuiz, openWager],
   )
 
   const realmIdx = getRealmIndex(tuVi)
