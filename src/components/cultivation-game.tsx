@@ -950,7 +950,7 @@ export default function CultivationGame() {
       {/* Gợi ý */}
       {!quiz && (
         <p className="pointer-events-none absolute bottom-6 right-6 max-w-[220px] text-right text-xs leading-relaxed text-jade-soft/60">
-          Chọn Linh Thạch trên map để thu thập, Chạm Bí Kíp trên map để luyện công (+20 Tu Vi).
+          Chọn Linh Thạch trên map để thu thập, Chạm Bí Kíp trên map để luyện công (có thể đánh cược Linh Thạch).
         </p>
       )}
 
