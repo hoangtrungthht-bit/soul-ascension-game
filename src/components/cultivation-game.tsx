@@ -245,7 +245,7 @@ export default function CultivationGame() {
 
   const grantTuVi = useCallback((amount: number, silent = false) => {
     const prevIdx = getRealmIndex(tuViRef.current)
-    const next = tuViRef.current + amount
+    const next = Math.max(0, tuViRef.current + amount)
     const nextIdx = getRealmIndex(next)
     setTuVi(next)
     if (nextIdx > prevIdx) {
