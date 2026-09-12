@@ -111,9 +111,13 @@ export default function CultivationGame() {
   const camRef = useRef({ x: 0, y: 0 })
   const nearStoneRef = useRef<number | null>(null)
   const lastQuestionRef = useRef<Question | undefined>(undefined)
+  const linhThachRef = useRef(0)
   useEffect(() => {
     tuViRef.current = tuVi
   }, [tuVi])
+  useEffect(() => {
+    linhThachRef.current = linhThach
+  }, [linhThach])
   useEffect(() => {
     // DEV TEST: ?tuvi=NNN
     const v = Number(new URLSearchParams(window.location.search).get("tuvi") || 0)
