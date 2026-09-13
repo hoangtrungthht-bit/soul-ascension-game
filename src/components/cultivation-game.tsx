@@ -515,7 +515,7 @@ export default function CultivationGame() {
       ctx.save()
       ctx.translate(-camX, -camY)
 
-      // Tilemap theo nhóm cảnh giới (đá cổ rêu / bạch ngọc / cẩm thạch / hồ ngọc)
+      // Tilemap nền + lớp phủ màu theo theme của cảnh giới hiện tại
       if (assets.groundPattern) {
         ctx.fillStyle = assets.groundPattern
         ctx.fillRect(camX, camY, w, h)
