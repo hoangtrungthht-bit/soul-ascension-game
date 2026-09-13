@@ -144,7 +144,7 @@ export default function CultivationGame() {
           // Thu ảnh tile 1024px về kích cỡ ô GROUND_TILE trong thế giới
           groundPattern?.setTransform(new DOMMatrix().scale(GROUND_TILE / pixel.ground.width))
         }
-        // Tô màu sẵn sprite theo 4 nhóm cảnh giới
+        // Tô màu sẵn sprite theo theme của từng cảnh giới (9 theme)
         const tinted: Tinted = { tree: [], stone: [], scroll: [] }
         for (const th of REALM_THEMES) {
           tinted.tree.push(th.treeTint ? tintCanvas(pixel.tree, th.treeTint) : null)
@@ -258,7 +258,7 @@ export default function CultivationGame() {
         window.setTimeout(() => {
           envGroupRef.current = nextGroup
           setEnvFade("in")
-          setEnvToast("Mở khóa Tiên Cảnh Mới!")
+          setEnvToast(`Mở khóa: ${REALM_THEMES[nextGroup]?.name ?? "Tiên Cảnh Mới"}!`)
           window.setTimeout(() => setEnvFade("idle"), 1000)
           window.setTimeout(() => setEnvToast(null), 2400)
         }, 1000)
